@@ -5,29 +5,28 @@
   <meta name="viewport" content="width=device-width,initial-scale=1" />
   <meta name="color-scheme" content="light dark" />
   <title>Un libro para ti ✨</title>
+
   <style>
     :root{
       --bg0:#070A12;
       --bg1:#0B1230;
-      --ink:#0B0F1A;
+
       --paper:#F6F2E9;
       --paper2:#FFFDF8;
-      --muted:rgba(12,16,26,.65);
-      --shadow: 0 28px 80px rgba(0,0,0,.55);
-      --soft: 0 12px 30px rgba(0,0,0,.25);
+      --ink:#0B0F1A;
+
       --radius: 22px;
-      --gutter: clamp(14px, 2.2vw, 22px);
       --w: min(980px, 94vw);
       --h: min(620px, 72vh);
+
       --ease: cubic-bezier(.2,.8,.2,1);
-      --flipMs: 820ms;
-      --flipMsMobile: 560ms;
+      --flipMs: 900ms;
+
       --accentA: #FF4D6D;
       --accentB: #7C5CFF;
       --accentC: #3CE5D2;
     }
 
-    /* Subtle starfield background */
     body{
       margin:0;
       min-height:100svh;
@@ -40,7 +39,7 @@
         radial-gradient(1000px 700px at 50% 90%, rgba(255,77,109,.16), transparent 60%),
         linear-gradient(180deg, var(--bg0), var(--bg1));
       overflow-x:hidden;
-      font-family: ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, "Noto Sans", "Apple Color Emoji","Segoe UI Emoji";
+      font-family: ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial;
     }
     body::before{
       content:"";
@@ -52,14 +51,12 @@
         radial-gradient(1px 1px at 55% 45%, rgba(255,255,255,.5), transparent 55%),
         radial-gradient(1.2px 1.2px at 70% 85%, rgba(255,255,255,.35), transparent 55%);
       opacity:.45;
-      filter: blur(.2px);
       pointer-events:none;
       transform: translateZ(0);
     }
 
     .app{
       width: var(--w);
-      max-width: 1100px;
       padding: 18px 14px 26px;
     }
 
@@ -69,6 +66,7 @@
       align-items:center;
       justify-content:space-between;
       margin-bottom: 14px;
+      flex-wrap: wrap;
     }
 
     .brand{
@@ -78,8 +76,7 @@
       user-select:none;
     }
     .logo{
-      width: 40px;
-      height: 40px;
+      width: 40px; height: 40px;
       border-radius: 14px;
       background:
         radial-gradient(18px 18px at 30% 30%, rgba(255,255,255,.7), transparent 55%),
@@ -106,7 +103,7 @@
       margin:0;
       font-size: clamp(16px, 2.2vw, 18px);
       letter-spacing:.2px;
-      font-weight: 780;
+      font-weight: 800;
       line-height:1.05;
     }
     .brand p{
@@ -122,7 +119,6 @@
       flex-wrap:wrap;
       justify-content:flex-end;
     }
-
     .pill{
       display:flex;
       align-items:center;
@@ -135,15 +131,15 @@
       box-shadow: 0 10px 25px rgba(0,0,0,.22);
       user-select:none;
     }
-    .meta{
-      font-size: 12.5px;
-      opacity: .9;
-      white-space:nowrap;
-    }
     .dot{
       width: 7px; height: 7px; border-radius:50%;
       background: rgba(255,255,255,.55);
       box-shadow: 0 0 0 4px rgba(255,255,255,.10);
+    }
+    .meta{
+      font-size: 12.5px;
+      opacity: .9;
+      white-space:nowrap;
     }
 
     button{
@@ -157,7 +153,7 @@
       cursor:pointer;
       transition: transform 180ms var(--ease), background 180ms var(--ease), border-color 180ms var(--ease);
       box-shadow: 0 10px 25px rgba(0,0,0,.22);
-      font-weight: 650;
+      font-weight: 700;
       letter-spacing:.2px;
     }
     button:hover{ transform: translateY(-1px); background: rgba(255,255,255,.14); border-color: rgba(255,255,255,.22); }
@@ -192,14 +188,14 @@
       border:1px solid rgba(255,255,255,.16);
     }
 
-    /* Book */
+    /* ========== BOOK ========== */
     .scene{
       position:absolute;
       inset: 14px;
       border-radius: calc(var(--radius) + 6px);
       display:grid;
       place-items:center;
-      perspective: 1600px;
+      perspective: 1800px;
       transform: translateZ(0);
       touch-action: pan-y;
     }
@@ -212,7 +208,7 @@
       filter: drop-shadow(0 28px 80px rgba(0,0,0,.55));
     }
 
-    /* “Spine” / back plate */
+    /* back plate */
     .book::before{
       content:"";
       position:absolute;
@@ -220,27 +216,35 @@
       border-radius: var(--radius);
       background:
         linear-gradient(90deg,
-          rgba(0,0,0,.25),
+          rgba(0,0,0,.35),
           rgba(255,255,255,.06) 8%,
           rgba(255,255,255,.04) 50%,
           rgba(255,255,255,.06) 92%,
-          rgba(0,0,0,.22));
-      box-shadow: var(--shadow);
-      transform: translateZ(-2px);
+          rgba(0,0,0,.32));
+      box-shadow: 0 28px 80px rgba(0,0,0,.55);
+      transform: translateZ(-6px);
     }
 
-    /* Paper texture overlay */
-    .paper-noise{
+    /* stacked paper edge on the right (juicy) */
+    .edge{
       position:absolute;
-      inset: 0;
-      border-radius: var(--radius);
-      pointer-events:none;
+      top: 10px;
+      right: 10px;
+      bottom: 10px;
+      width: 18px;
+      border-radius: 14px;
       background:
-        radial-gradient(700px 380px at 70% 30%, rgba(255,255,255,.16), transparent 55%),
-        radial-gradient(900px 600px at 30% 70%, rgba(0,0,0,.10), transparent 55%);
-      mix-blend-mode: overlay;
+        repeating-linear-gradient(
+          180deg,
+          rgba(255,255,255,.55) 0px,
+          rgba(255,255,255,.55) 2px,
+          rgba(240,233,220,.55) 3px,
+          rgba(240,233,220,.55) 5px
+        );
       opacity:.55;
-      transform: translateZ(0);
+      transform: translateZ(2px);
+      pointer-events:none;
+      filter: blur(.15px);
     }
 
     .sheets{
@@ -257,10 +261,11 @@
       transform-origin: left center;
       transition: transform var(--flipMs) var(--ease);
       border-radius: var(--radius);
+      will-change: transform;
     }
 
-    /* Each sheet has two pages (front/back) */
-    .page{
+    /* The actual faces */
+    .face{
       position:absolute;
       inset: 0;
       border-radius: var(--radius);
@@ -268,18 +273,28 @@
       backface-visibility: hidden;
       background: linear-gradient(180deg, var(--paper2), var(--paper));
       color: var(--ink);
-      box-shadow: var(--soft);
+      box-shadow: 0 18px 44px rgba(0,0,0,.22);
       display:grid;
       grid-template-columns: 1fr 1fr;
     }
 
-    /* On mobile we render as single-page column */
-    @media (max-width: 740px){
-      :root{ --h: min(640px, 78svh); }
-      .page{ grid-template-columns: 1fr; }
+    /* make the flip VERY visible with a hinge shadow */
+    .sheet::after{
+      content:"";
+      position:absolute;
+      top: 0; bottom: 0;
+      left: 0;
+      width: 28px;
+      border-radius: var(--radius);
+      background: radial-gradient(24px 80% at 0% 50%, rgba(0,0,0,.38), transparent 70%);
+      opacity: 0;
+      transform: translateZ(1px);
+      transition: opacity var(--flipMs) var(--ease);
+      pointer-events:none;
     }
+    .sheet.flipping::after{ opacity: 1; }
 
-    .page.back{
+    .face.back{
       transform: rotateY(180deg);
     }
 
@@ -287,54 +302,45 @@
       transform: rotateY(-180deg);
     }
 
-    /* Subtle edge shading to feel “bookish” */
-    .page::before{
-      content:"";
-      position:absolute; inset:0;
-      background:
-        linear-gradient(90deg,
-          rgba(0,0,0,.10),
-          transparent 10%,
-          transparent 90%,
-          rgba(0,0,0,.10));
-      opacity:.55;
-      pointer-events:none;
-    }
-
-    /* Center gutter shadow */
     .gutter{
       position:absolute;
       top: 0; bottom: 0;
       left: 50%;
-      width: 28px;
+      width: 32px;
       transform: translateX(-50%);
-      background:
-        radial-gradient(18px 90% at 50% 50%, rgba(0,0,0,.16), transparent 65%);
+      background: radial-gradient(18px 90% at 50% 50%, rgba(0,0,0,.18), transparent 65%);
       pointer-events:none;
-      opacity:.85;
-    }
-    @media (max-width: 740px){
-      .gutter{ display:none; }
+      opacity:.95;
+      transform-style: preserve-3d;
+      translate: 0 0;
     }
 
+    @media (max-width: 740px){
+      :root{ --h: min(660px, 78svh); --flipMs: 620ms; }
+      .face{ grid-template-columns: 1fr; }
+      .gutter{ display:none; }
+      .edge{ width: 12px; opacity: .45; }
+    }
+
+    /* content blocks */
     .pane{
-      padding: var(--gutter);
+      padding: clamp(14px, 2.2vw, 22px);
       display:flex;
       flex-direction:column;
       gap: 12px;
       justify-content:space-between;
-      position:relative;
       min-height: 100%;
+      position:relative;
     }
 
     .hero{
       height: 100%;
-      min-height: 260px;
+      min-height: 250px;
       border-radius: 18px;
       overflow:hidden;
       position:relative;
       background: rgba(0,0,0,.06);
-      box-shadow: 0 16px 40px rgba(0,0,0,.10);
+      box-shadow: 0 16px 40px rgba(0,0,0,.12);
     }
     .hero img{
       width:100%;
@@ -342,15 +348,15 @@
       object-fit: cover;
       display:block;
       transform: scale(1.02);
-      transition: transform 600ms var(--ease);
+      transition: transform 650ms var(--ease);
     }
-    .page:hover .hero img{ transform: scale(1.06); }
+    .face:hover .hero img{ transform: scale(1.06); }
 
     .hero::after{
       content:"";
       position:absolute; inset:0;
       background:
-        linear-gradient(180deg, transparent 40%, rgba(0,0,0,.22)),
+        linear-gradient(180deg, transparent 40%, rgba(0,0,0,.25)),
         radial-gradient(60% 45% at 70% 20%, rgba(255,255,255,.22), transparent 60%);
       pointer-events:none;
     }
@@ -360,10 +366,10 @@
       align-items:center;
       gap:8px;
       font-size: 12px;
-      font-weight: 720;
+      font-weight: 780;
       letter-spacing:.35px;
       text-transform: uppercase;
-      color: rgba(255,255,255,.92);
+      color: rgba(255,255,255,.94);
       background: linear-gradient(135deg, rgba(255,77,109,.95), rgba(124,92,255,.85));
       padding: 9px 11px;
       border-radius: 999px;
@@ -384,7 +390,7 @@
       font-size: clamp(20px, 2.4vw, 28px);
       line-height: 1.08;
       letter-spacing: .1px;
-      font-weight: 860;
+      font-weight: 880;
     }
     .subtitle{
       margin: 0;
@@ -409,16 +415,16 @@
     .pnum{
       font-size: 12px;
       color: rgba(10,12,18,.55);
-      font-weight: 700;
+      font-weight: 800;
       letter-spacing:.2px;
     }
     .mini{
       font-size: 12px;
       color: rgba(10,12,18,.62);
-      font-weight: 650;
+      font-weight: 750;
     }
 
-    /* Cover styling */
+    /* Cover */
     .cover{
       background:
         radial-gradient(900px 600px at 30% 20%, rgba(124,92,255,.22), transparent 60%),
@@ -427,31 +433,14 @@
         linear-gradient(180deg, #11142B, #090B17);
       color: rgba(255,255,255,.92);
     }
-    .cover::before{ opacity:.22; }
-    .cover .pane{
-      gap: 16px;
-    }
-    .cover .title{ color: rgba(255,255,255,.96); }
-    .cover .subtitle{ opacity:.82; }
     .cover .text{ color: rgba(255,255,255,.82); }
     .cover .pnum, .cover .mini{ color: rgba(255,255,255,.75); }
-    .cover .hero{
-      box-shadow: 0 26px 60px rgba(0,0,0,.45);
-      background: rgba(255,255,255,.05);
-    }
 
-    /* Reduce motion */
     @media (prefers-reduced-motion: reduce){
-      .sheet{ transition: none; }
+      .sheet{ transition:none; }
       .logo::after{ animation:none; }
-      .page:hover .hero img{ transform:none; }
-    }
-
-    /* Mobile: faster flips */
-    @media (max-width: 740px){
-      .sheet{ transition-duration: var(--flipMsMobile); }
-      .controls{ gap: 8px; }
-      button{ padding: 10px 12px; }
+      .face:hover .hero img{ transform:none; }
+      .sheet::after{ transition:none; }
     }
   </style>
 </head>
@@ -480,7 +469,7 @@
     <div class="stage">
       <div class="scene" id="scene">
         <div class="book" role="application" aria-label="Libro interactivo">
-          <div class="paper-noise" aria-hidden="true"></div>
+          <div class="edge" aria-hidden="true"></div>
           <div class="gutter" aria-hidden="true"></div>
           <div class="sheets" id="sheets"></div>
         </div>
@@ -495,10 +484,8 @@
 
   <script>
     // =========================
-    // 1) CONTENIDO (BOSQUEJO)
+    // CONTENIDO (BOSQUEJO)
     // =========================
-    // Cambia estos objetos por tu texto real, fotos, títulos, etc.
-    // Las imágenes vienen de Unsplash aleatorias (puedes reemplazar por tus URLs o rutas locales).
     const PAGES = [
       {
         kind: "cover",
@@ -506,75 +493,75 @@
         title: "Para ti, en forma de libro ✨",
         subtitle: "Un eBook hecho a mano, hoja por hoja, para que lo abras cuando quieras.",
         text: "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam.",
-        image: "https://images.unsplash.com/photo-1520975682071-ae4a9f1e92b1?auto=format&fit=crop&w=1200&q=80"
+        image: "https://images.unsplash.com/photo-1520975682071-ae4a9f1e92b1?auto=format&fit=crop&w=1400&q=80"
       },
       {
         tag: "Capítulo 1",
         title: "Una primera página suave",
-        subtitle: "Esto es solo un bosquejo. Después lo llenamos con tu historia real.",
+        subtitle: "Esto es un bosquejo. Después lo llenamos con tu historia real.",
         text: "Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Amet venenatis urna cursus eget nunc.",
-        image: "https://images.unsplash.com/photo-1519681393784-d120267933ba?auto=format&fit=crop&w=1200&q=80"
+        image: "https://images.unsplash.com/photo-1519681393784-d120267933ba?auto=format&fit=crop&w=1400&q=80"
       },
       {
         tag: "Capítulo 1",
         title: "Detalles pequeños, efecto grande",
         subtitle: "Una carta no se lee: se recorre.",
         text: "Eget arcu dictum varius duis at consectetur lorem. Ultrices tincidunt arcu non sodales neque sodales. Ipsum consequat nisl vel pretium lectus quam id leo.",
-        image: "https://images.unsplash.com/photo-1516574187841-cb9cc2ca948b?auto=format&fit=crop&w=1200&q=80"
+        image: "https://images.unsplash.com/photo-1516574187841-cb9cc2ca948b?auto=format&fit=crop&w=1400&q=80"
       },
       {
         tag: "Capítulo 2",
         title: "Un recuerdo inventado (por ahora)",
         subtitle: "Aquí después van tus frases reales, tus hitos, tus símbolos.",
         text: "Vitae congue mauris rhoncus aenean vel elit scelerisque mauris pellentesque. Nibh mauris cursus mattis molestie a iaculis. Convallis posuere morbi leo urna molestie.",
-        image: "https://images.unsplash.com/photo-1518837695005-2083093ee35b?auto=format&fit=crop&w=1200&q=80"
+        image: "https://images.unsplash.com/photo-1469474968028-56623f02e42e?auto=format&fit=crop&w=1400&q=80"
       },
       {
         tag: "Capítulo 2",
         title: "Ritmo cómodo",
         subtitle: "Paso de páginas suave, sin marear, con transición elegante.",
         text: "Feugiat sed lectus vestibulum mattis ullamcorper velit sed. Sit amet nisl suscipit adipiscing bibendum est ultricies. Arcu cursus vitae congue mauris rhoncus.",
-        image: "https://images.unsplash.com/photo-1520962688085-3f0d0d4f2b34?auto=format&fit=crop&w=1200&q=80"
+        image: "https://images.unsplash.com/photo-1520975869012-0f72e6b5f7a8?auto=format&fit=crop&w=1400&q=80"
       },
       {
         tag: "Capítulo 3",
         title: "Una página luminosa",
         subtitle: "Una foto bonita + texto breve siempre pega fuerte.",
         text: "Cras sed felis eget velit aliquet. Sit amet massa vitae tortor condimentum lacinia. Pulvinar etiam non quam lacus suspendisse faucibus interdum posuere.",
-        image: "https://images.unsplash.com/photo-1520975916090-3105956dac38?auto=format&fit=crop&w=1200&q=80"
+        image: "https://images.unsplash.com/photo-1500530855697-b586d89ba3ee?auto=format&fit=crop&w=1400&q=80"
       },
       {
         tag: "Capítulo 3",
         title: "Un mensaje escondido",
-        subtitle: "Después puedes hacer: pistas, cupones, capítulos, claves, sorpresas.",
+        subtitle: "Después puedes meter pistas, cupones, capítulos, sorpresas.",
         text: "Suspendisse potenti nullam ac tortor vitae purus faucibus ornare suspendisse. In hac habitasse platea dictumst vestibulum rhoncus est pellentesque elit.",
-        image: "https://images.unsplash.com/photo-1469474968028-56623f02e42e?auto=format&fit=crop&w=1200&q=80"
+        image: "https://images.unsplash.com/photo-1518837695005-2083093ee35b?auto=format&fit=crop&w=1400&q=80"
       },
       {
         tag: "Capítulo 4",
         title: "El estilo ya está",
-        subtitle: "Tú solo reemplazas el contenido y queda listo.",
+        subtitle: "Tú reemplazas el contenido y queda listo.",
         text: "Mauris rhoncus aenean vel elit scelerisque mauris pellentesque pulvinar. Malesuada nunc vel risus commodo viverra maecenas accumsan lacus vel facilisis.",
-        image: "https://images.unsplash.com/photo-1520975869012-0f72e6b5f7a8?auto=format&fit=crop&w=1200&q=80"
+        image: "https://images.unsplash.com/photo-1520975916090-3105956dac38?auto=format&fit=crop&w=1400&q=80"
       },
       {
         tag: "Final",
         title: "Cierre (por ahora)",
-        subtitle: "La última página puede ser una promesa, una invitación o un “te elijo”.",
+        subtitle: "La última página puede ser promesa, invitación o un ‘te elijo’.",
         text: "Amet consectetur adipiscing elit duis tristique sollicitudin nibh sit. Eu feugiat pretium nibh ipsum consequat nisl vel pretium lectus. Nunc sed velit dignissim sodales.",
-        image: "https://images.unsplash.com/photo-1500530855697-b586d89ba3ee?auto=format&fit=crop&w=1200&q=80"
+        image: "https://images.unsplash.com/photo-1520975869012-0f72e6b5f7a8?auto=format&fit=crop&w=1400&q=80"
       },
       {
         tag: "Final",
         title: "Fin ✦",
         subtitle: "Cuando quieras, lo personalizamos completo con tu texto real.",
         text: "Lorem ipsum dolor sit amet. Tempus iaculis urna id volutpat lacus laoreet non. Tellus cras adipiscing enim eu turpis egestas pretium aenean pharetra.",
-        image: "https://images.unsplash.com/photo-1470770903676-69b98201ea1c?auto=format&fit=crop&w=1200&q=80"
+        image: "https://images.unsplash.com/photo-1516574187841-cb9cc2ca948b?auto=format&fit=crop&w=1400&q=80"
       }
     ];
 
     // =========================
-    // 2) RENDER DEL LIBRO
+    // RENDER
     // =========================
     const sheetsEl = document.getElementById("sheets");
     const statusText = document.getElementById("statusText");
@@ -582,11 +569,12 @@
     const nextBtn = document.getElementById("nextBtn");
     const scene = document.getElementById("scene");
 
-    // Cada "sheet" contiene 2 páginas (front/back) para lograr el flip real.
     const sheetCount = Math.ceil(PAGES.length / 2);
+    let currentSheet = 0; // number of sheets already flipped
+    let isAnimating = false;
 
     function escapeHtml(str) {
-      return String(str)
+      return String(str ?? "")
         .replaceAll("&", "&amp;")
         .replaceAll("<", "&lt;")
         .replaceAll(">", "&gt;")
@@ -594,17 +582,17 @@
         .replaceAll("'", "&#039;");
     }
 
-    function pageTemplate(page, pageNumber, isCover=false) {
+    function makeInner(page, pageNumber, isCover=false) {
       const tag = escapeHtml(page?.tag ?? "");
       const title = escapeHtml(page?.title ?? "");
       const subtitle = escapeHtml(page?.subtitle ?? "");
       const text = escapeHtml(page?.text ?? "");
       const image = page?.image ?? "";
-      const kindCover = isCover ? " cover" : "";
+      const coverClass = isCover ? "cover" : "";
       const tagHtml = tag ? `<div class="tag"><span class="spark"></span>${tag}</div>` : "";
 
       return `
-        <div class="page${kindCover}">
+        <div class="face ${coverClass}">
           <div class="pane">
             <div style="position:relative;">
               ${tagHtml}
@@ -625,14 +613,14 @@
             </div>
           </div>
 
-          <!-- Right pane (only visible on desktop) -->
+          <!-- right pane (desktop spread) -->
           <div class="pane" aria-hidden="true" style="display:flex; justify-content:center; gap:14px;">
             <div style="
               border-radius:18px;
               background: rgba(0,0,0,.04);
               border: 1px solid rgba(0,0,0,.06);
               padding: 14px;
-              box-shadow: 0 16px 40px rgba(0,0,0,.08);
+              box-shadow: 0 16px 40px rgba(0,0,0,.10);
               ">
               <div style="
                 width: 100%;
@@ -642,25 +630,13 @@
                   radial-gradient(120px 90px at 20% 25%, rgba(255,77,109,.25), transparent 60%),
                   radial-gradient(140px 110px at 80% 40%, rgba(124,92,255,.22), transparent 60%),
                   radial-gradient(160px 120px at 40% 80%, rgba(60,229,210,.18), transparent 60%),
-                  linear-gradient(180deg, rgba(0,0,0,.04), rgba(0,0,0,.02));
+                  linear-gradient(180deg, rgba(0,0,0,.05), rgba(0,0,0,.02));
                 margin-bottom: 12px;
               "></div>
-              <div style="font-weight:860; font-size:16px; color: rgba(10,12,18,.86);">Nota bonita</div>
+              <div style="font-weight:880; font-size:16px; color: rgba(10,12,18,.86);">Nota bonita</div>
               <div style="opacity:.72; font-size:13px; line-height:1.5; color: rgba(10,12,18,.82);">
                 Aquí puedes poner una frase corta, un mini “te elijo”, o un detalle (fecha, lugar, promesa).
               </div>
-            </div>
-
-            <div style="
-              display:flex;
-              gap:10px;
-              align-items:center;
-              justify-content:center;
-              opacity:.65;
-              font-size:12px;">
-              <span style="width:8px;height:8px;border-radius:50%;background:rgba(10,12,18,.25);"></span>
-              <span style="width:8px;height:8px;border-radius:50%;background:rgba(10,12,18,.18);"></span>
-              <span style="width:8px;height:8px;border-radius:50%;background:rgba(10,12,18,.12);"></span>
             </div>
           </div>
         </div>
@@ -669,6 +645,7 @@
 
     function buildBook() {
       sheetsEl.innerHTML = "";
+
       for (let i = 0; i < sheetCount; i++) {
         const frontIndex = i * 2;
         const backIndex = frontIndex + 1;
@@ -679,39 +656,26 @@
         const frontNum = frontIndex + 1;
         const backNum = backIndex + 1;
 
-        const isCover = front?.kind === "cover";
-
         const sheet = document.createElement("div");
         sheet.className = "sheet";
-        // Z stacking: top sheet has higher Z so it flips above the others.
-        sheet.style.transform = "rotateY(0deg)";
-        sheet.style.zIndex = String(sheetCount - i);
+        sheet.style.zIndex = String(sheetCount - i); // top sheet highest
+        sheet.dataset.index = String(i);
 
-        sheet.innerHTML = `
-          <div class="page front ${isCover ? "cover" : ""}">
-            ${pageTemplate(front, frontNum, isCover)}
-          </div>
-          <div class="page back ${back?.kind === "cover" ? "cover" : ""}">
-            ${pageTemplate(back, backNum, back?.kind === "cover")}
-          </div>
-        `;
+        // FRONT face
+        const frontEl = document.createElement("div");
+        frontEl.className = "face";
+        frontEl.innerHTML = makeInner(front, frontNum, front?.kind === "cover");
 
-        // Fix: we already put "page" wrapper above; remove nested duplicate wrappers.
-        // Replace nested "page" wrappers by using only inner grid content.
-        // (The template returns a wrapper .page; we want only the inner content.)
-        // We'll rewrite quickly:
-        sheet.querySelector(".page.front").innerHTML = pageTemplate(front, frontNum, isCover).replace(/^<div class="page[^>]*">|<\/div>$/g, "");
-        sheet.querySelector(".page.back").innerHTML = pageTemplate(back, backNum, false).replace(/^<div class="page[^>]*">|<\/div>$/g, "");
+        // BACK face
+        const backEl = document.createElement("div");
+        backEl.className = "face back";
+        backEl.innerHTML = makeInner(back, backNum, back?.kind === "cover");
 
+        sheet.appendChild(frontEl);
+        sheet.appendChild(backEl);
         sheetsEl.appendChild(sheet);
       }
     }
-
-    // =========================
-    // 3) NAVEGACIÓN (NEXT/PREV)
-    // =========================
-    let currentSheet = 0; // how many sheets have been flipped
-    const sheets = () => Array.from(document.querySelectorAll(".sheet"));
 
     function clamp(n, a, b){ return Math.max(a, Math.min(b, n)); }
 
@@ -719,23 +683,46 @@
       const totalPages = PAGES.length;
       const pageNow = clamp(currentSheet * 2 + 1, 1, totalPages);
       statusText.textContent = `Página ${pageNow} / ${totalPages}`;
-      prevBtn.disabled = currentSheet === 0;
-      nextBtn.disabled = currentSheet >= sheetCount - 1;
+      prevBtn.disabled = currentSheet === 0 || isAnimating;
+      nextBtn.disabled = currentSheet >= sheetCount - 1 || isAnimating;
+    }
+
+    function sheets(){ return Array.from(document.querySelectorAll(".sheet")); }
+
+    function animateSheet(sheet, toFlipped) {
+      isAnimating = true;
+      sheet.classList.add("flipping");
+      // Force reflow to ensure class takes effect before transform transition
+      void sheet.offsetWidth;
+
+      if (toFlipped) sheet.classList.add("flipped");
+      else sheet.classList.remove("flipped");
+
+      const onDone = () => {
+        sheet.classList.remove("flipping");
+        sheet.removeEventListener("transitionend", onDone);
+        isAnimating = false;
+        updateUi();
+      };
+      sheet.addEventListener("transitionend", onDone, { once: true });
+      updateUi();
     }
 
     function goNext() {
+      if (isAnimating) return;
       if (currentSheet >= sheetCount - 1) return;
       const s = sheets()[currentSheet];
-      s.classList.add("flipped");
+      animateSheet(s, true);
       currentSheet++;
       updateUi();
     }
 
     function goPrev() {
+      if (isAnimating) return;
       if (currentSheet <= 0) return;
       currentSheet--;
       const s = sheets()[currentSheet];
-      s.classList.remove("flipped");
+      animateSheet(s, false);
       updateUi();
     }
 
@@ -748,47 +735,38 @@
     });
 
     // =========================
-    // 4) SWIPE (CELULAR)
+    // SWIPE
     // =========================
-    let startX = 0;
-    let startY = 0;
-    let isPointerDown = false;
+    let startX = 0, startY = 0, down = false;
 
     scene.addEventListener("pointerdown", (e) => {
-      isPointerDown = true;
+      down = true;
       startX = e.clientX;
       startY = e.clientY;
     });
 
     scene.addEventListener("pointerup", (e) => {
-      if (!isPointerDown) return;
-      isPointerDown = false;
-
+      if (!down) return;
+      down = false;
       const dx = e.clientX - startX;
       const dy = e.clientY - startY;
 
-      // ignore if mostly vertical (scroll intention)
-      if (Math.abs(dy) > Math.abs(dx) * 1.2) return;
-
+      if (Math.abs(dy) > Math.abs(dx) * 1.2) return; // vertical intent
       if (dx < -35) goNext();
       if (dx > 35) goPrev();
     });
+    scene.addEventListener("pointercancel", () => { down = false; });
 
-    scene.addEventListener("pointercancel", () => { isPointerDown = false; });
-
-    // =========================
-    // 5) INIT + preload images
-    // =========================
-    function preloadImages() {
+    // preload images
+    (function preload(){
       for (const p of PAGES) {
         if (!p?.image) continue;
         const img = new Image();
         img.src = p.image;
       }
-    }
+    })();
 
     buildBook();
-    preloadImages();
     updateUi();
   </script>
 </body>
