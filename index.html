@@ -16,7 +16,6 @@
       --ink:#0B0F1A;
 
       --radius: 22px;
-      /* ✅ Mobile-first: un libro vertical, incluso en PC */
       --bookW: min(420px, 92vw);
       --bookH: min(760px, 84svh);
 
@@ -164,7 +163,6 @@
     button:active{ transform: translateY(0); }
     button:disabled{ opacity:.45; cursor:not-allowed; transform:none; }
 
-    /* ✅ Stage centrado, pero el book manda */
     .stage{
       position:relative;
       width: 100%;
@@ -191,7 +189,6 @@
       border:1px solid rgba(255,255,255,.16);
     }
 
-    /* ========== BOOK (vertical always) ========== */
     .scene{
       width: var(--bookW);
       height: var(--bookH);
@@ -276,7 +273,7 @@
       background: linear-gradient(180deg, var(--paper2), var(--paper));
       color: var(--ink);
       box-shadow: 0 18px 44px rgba(0,0,0,.22);
-      display:flex;             /* ✅ una sola columna */
+      display:flex;
       flex-direction:column;
     }
 
@@ -296,10 +293,8 @@
     .sheet.flipping::after{ opacity: 1; }
 
     .face.back{ transform: rotateY(180deg); }
-
     .sheet.flipped{ transform: rotateY(-180deg); }
 
-    /* content blocks (vertical) */
     .pane{
       padding: 18px;
       display:flex;
@@ -468,13 +463,8 @@
         text: "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam.",
         image: "https://images.unsplash.com/photo-1520975682071-ae4a9f1e92b1?auto=format&fit=crop&w=1400&q=80"
       },
-      {
-        tag: "",
-        title: "",
-        subtitle: "",
-        text: "",
-        image: ""
-      },
+      { tag: "", title: "", subtitle: "", text: "", image: "" },
+
       {
         tag: "Capítulo 2",
         title: "Detalles pequeños, efecto grande",
@@ -482,13 +472,8 @@
         text: "Eget arcu dictum varius duis at consectetur lorem. Ultrices tincidunt arcu non sodales neque sodales.",
         image: "https://images.unsplash.com/photo-1516574187841-cb9cc2ca948b?auto=format&fit=crop&w=1400&q=80"
       },
-      {
-        tag: "",
-        title: "",
-        subtitle: "",
-        text: "",
-        image: ""
-    },
+      { tag: "", title: "", subtitle: "", text: "", image: "" },
+
       {
         tag: "Capítulo 3",
         title: "Ritmo cómodo",
@@ -496,13 +481,8 @@
         text: "Feugiat sed lectus vestibulum mattis ullamcorper velit sed. Sit amet nisl suscipit adipiscing bibendum est ultricies.",
         image: "https://images.unsplash.com/photo-1520975869012-0f72e6b5f7a8?auto=format&fit=crop&w=1400&q=80"
       },
-      {
-        tag: "",
-        title: "",
-        subtitle: "",
-        text: "",
-        image: ""
-      },
+      { tag: "", title: "", subtitle: "", text: "", image: "" },
+
       {
         tag: "Capítulo 4",
         title: "Un mensaje escondido",
@@ -510,20 +490,15 @@
         text: "Suspendisse potenti nullam ac tortor vitae purus faucibus ornare suspendisse.",
         image: "https://images.unsplash.com/photo-1518837695005-2083093ee35b?auto=format&fit=crop&w=1400&q=80"
       },
-      {
-        tag: "",
-        title: "",
-        subtitle: "",
-        text: "",
-        image: ""
-      },
+      { tag: "", title: "", subtitle: "", text: "", image: "" },
+
       {
         tag: "Capítulo 5",
         title: "Cierre (por ahora)",
         subtitle: "La última página puede ser promesa, invitación o un ‘te elijo’.",
         text: "Amet consectetur adipiscing elit duis tristique sollicitudin nibh sit. Eu feugiat pretium nibh ipsum consequat.",
         image: "https://images.unsplash.com/photo-1520975869012-0f72e6b5f7a8?auto=format&fit=crop&w=1400&q=80"
-      },
+      }
     ];
 
     const sheetsEl = document.getElementById("sheets");
@@ -623,8 +598,14 @@
 
     function sheets(){ return Array.from(document.querySelectorAll(".sheet")); }
 
+    // ✅ FIX: transición robusta (si transitionend falla, igual liberamos isAnimating)
     function animateSheet(sheet, toFlipped) {
+      if (!sheet) return;
+
       isAnimating = true;
+      prevBtn.disabled = true;
+      nextBtn.disabled = true;
+
       sheet.style.zIndex = "9999";
       sheet.classList.add("flipping");
       void sheet.offsetWidth;
@@ -632,8 +613,11 @@
       if (toFlipped) sheet.classList.add("flipped");
       else sheet.classList.remove("flipped");
 
-      const onDone = (e) => {
-        if (e.propertyName !== "transform") return;
+      let done = false;
+
+      const finish = () => {
+        if (done) return;
+        done = true;
 
         sheet.classList.remove("flipping");
         sheet.style.zIndex = toFlipped ? sheet.dataset.zBack : sheet.dataset.zFront;
@@ -642,15 +626,33 @@
         updateUi();
       };
 
-      sheet.addEventListener("transitionend", onDone, { once: true });
-      updateUi();
+      const onEnd = (e) => {
+        if (e && e.propertyName && e.propertyName !== "transform") return;
+        sheet.removeEventListener("transitionend", onEnd);
+        finish();
+      };
+
+      // Transitionend normal
+      sheet.addEventListener("transitionend", onEnd);
+
+      // ✅ Failsafe: si el browser no dispara transitionend
+      const ms = parseFloat(getComputedStyle(sheet).transitionDuration) * 1000
+               + parseFloat(getComputedStyle(sheet).transitionDelay) * 1000;
+
+      window.setTimeout(() => {
+        sheet.removeEventListener("transitionend", onEnd);
+        finish();
+      }, Math.max(60, Math.round(ms + 120)));
     }
 
     function goNext() {
       if (isAnimating) return;
       if (currentSheet >= sheetCount - 1) return;
 
-      const s = sheets()[currentSheet];
+      const all = sheets();
+      const s = all[currentSheet];
+      if (!s) return;
+
       animateSheet(s, true);
       currentSheet++;
       updateUi();
@@ -661,7 +663,10 @@
       if (currentSheet <= 0) return;
 
       currentSheet--;
-      const s = sheets()[currentSheet];
+      const all = sheets();
+      const s = all[currentSheet];
+      if (!s) return;
+
       animateSheet(s, false);
       updateUi();
     }
