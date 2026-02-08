@@ -205,7 +205,6 @@
       height: min(610px, 100%);
       position: relative;
       transform-style: preserve-3d;
-      filter: drop-shadow(0 28px 80px rgba(0,0,0,.55));
     }
 
     /* back plate */
@@ -320,6 +319,7 @@
       .face{ grid-template-columns: 1fr; }
       .gutter{ display:none; }
       .edge{ width: 12px; opacity: .45; }
+      .face .pane:nth-child(2){ display:none !important; } /* hide right pane on mobile */
     }
 
     /* content blocks */
@@ -560,9 +560,6 @@
       }
     ];
 
-    // =========================
-    // RENDER
-    // =========================
     const sheetsEl = document.getElementById("sheets");
     const statusText = document.getElementById("statusText");
     const prevBtn = document.getElementById("prevBtn");
@@ -570,7 +567,7 @@
     const scene = document.getElementById("scene");
 
     const sheetCount = Math.ceil(PAGES.length / 2);
-    let currentSheet = 0; // number of sheets already flipped
+    let currentSheet = 0;
     let isAnimating = false;
 
     function escapeHtml(str) {
@@ -582,61 +579,58 @@
         .replaceAll("'", "&#039;");
     }
 
-    function makeInner(page, pageNumber, isCover=false) {
+    // ✅ IMPORTANTE: esto ya NO retorna un div.face
+    function makeInner(page, pageNumber) {
       const tag = escapeHtml(page?.tag ?? "");
       const title = escapeHtml(page?.title ?? "");
       const subtitle = escapeHtml(page?.subtitle ?? "");
       const text = escapeHtml(page?.text ?? "");
       const image = page?.image ?? "";
-      const coverClass = isCover ? "cover" : "";
       const tagHtml = tag ? `<div class="tag"><span class="spark"></span>${tag}</div>` : "";
 
       return `
-        <div class="face ${coverClass}">
-          <div class="pane">
-            <div style="position:relative;">
-              ${tagHtml}
-              <div class="hero" aria-hidden="true">
-                <img loading="lazy" decoding="async" src="${image}" alt="">
-              </div>
-            </div>
-
-            <div>
-              <h2 class="title">${title}</h2>
-              <p class="subtitle">${subtitle}</p>
-              <p class="text">${text}</p>
-
-              <div class="footer">
-                <span class="mini">Hecho por mí</span>
-                <span class="pnum">${pageNumber}</span>
-              </div>
+        <div class="pane">
+          <div style="position:relative;">
+            ${tagHtml}
+            <div class="hero" aria-hidden="true">
+              <img loading="lazy" decoding="async" src="${image}" alt="">
             </div>
           </div>
 
-          <!-- right pane (desktop spread) -->
-          <div class="pane" aria-hidden="true" style="display:flex; justify-content:center; gap:14px;">
+          <div>
+            <h2 class="title">${title}</h2>
+            <p class="subtitle">${subtitle}</p>
+            <p class="text">${text}</p>
+
+            <div class="footer">
+              <span class="mini">Hecho por mí</span>
+              <span class="pnum">${pageNumber}</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="pane" aria-hidden="true" style="display:flex; justify-content:center; gap:14px;">
+          <div style="
+            border-radius:18px;
+            background: rgba(0,0,0,.04);
+            border: 1px solid rgba(0,0,0,.06);
+            padding: 14px;
+            box-shadow: 0 16px 40px rgba(0,0,0,.10);
+            ">
             <div style="
-              border-radius:18px;
-              background: rgba(0,0,0,.04);
-              border: 1px solid rgba(0,0,0,.06);
-              padding: 14px;
-              box-shadow: 0 16px 40px rgba(0,0,0,.10);
-              ">
-              <div style="
-                width: 100%;
-                height: 210px;
-                border-radius: 16px;
-                background:
-                  radial-gradient(120px 90px at 20% 25%, rgba(255,77,109,.25), transparent 60%),
-                  radial-gradient(140px 110px at 80% 40%, rgba(124,92,255,.22), transparent 60%),
-                  radial-gradient(160px 120px at 40% 80%, rgba(60,229,210,.18), transparent 60%),
-                  linear-gradient(180deg, rgba(0,0,0,.05), rgba(0,0,0,.02));
-                margin-bottom: 12px;
-              "></div>
-              <div style="font-weight:880; font-size:16px; color: rgba(10,12,18,.86);">Nota bonita</div>
-              <div style="opacity:.72; font-size:13px; line-height:1.5; color: rgba(10,12,18,.82);">
-                Aquí puedes poner una frase corta, un mini “te elijo”, o un detalle (fecha, lugar, promesa).
-              </div>
+              width: 100%;
+              height: 210px;
+              border-radius: 16px;
+              background:
+                radial-gradient(120px 90px at 20% 25%, rgba(255,77,109,.25), transparent 60%),
+                radial-gradient(140px 110px at 80% 40%, rgba(124,92,255,.22), transparent 60%),
+                radial-gradient(160px 120px at 40% 80%, rgba(60,229,210,.18), transparent 60%),
+                linear-gradient(180deg, rgba(0,0,0,.05), rgba(0,0,0,.02));
+              margin-bottom: 12px;
+            "></div>
+            <div style="font-weight:880; font-size:16px; color: rgba(10,12,18,.86);">Nota bonita</div>
+            <div style="opacity:.72; font-size:13px; line-height:1.5; color: rgba(10,12,18,.82);">
+              Aquí puedes poner una frase corta, un mini “te elijo”, o un detalle (fecha, lugar, promesa).
             </div>
           </div>
         </div>
@@ -658,18 +652,22 @@
 
         const sheet = document.createElement("div");
         sheet.className = "sheet";
-        sheet.style.zIndex = String(sheetCount - i); // top sheet highest
         sheet.dataset.index = String(i);
+
+        // Guardamos z-index para stacking real
+        sheet.dataset.zFront = String(sheetCount - i); // adelante
+        sheet.dataset.zBack  = String(i + 1);          // atrás (cuando se voltea)
+        sheet.style.zIndex = sheet.dataset.zFront;
 
         // FRONT face
         const frontEl = document.createElement("div");
-        frontEl.className = "face";
-        frontEl.innerHTML = makeInner(front, frontNum, front?.kind === "cover");
+        frontEl.className = "face" + (front?.kind === "cover" ? " cover" : "");
+        frontEl.innerHTML = makeInner(front, frontNum);
 
         // BACK face
         const backEl = document.createElement("div");
-        backEl.className = "face back";
-        backEl.innerHTML = makeInner(back, backNum, back?.kind === "cover");
+        backEl.className = "face back" + (back?.kind === "cover" ? " cover" : "");
+        backEl.innerHTML = makeInner(back, backNum);
 
         sheet.appendChild(frontEl);
         sheet.appendChild(backEl);
@@ -691,19 +689,27 @@
 
     function animateSheet(sheet, toFlipped) {
       isAnimating = true;
+
+      // Mientras gira, lo ponemos arriba para que el flip se vea limpio
+      sheet.style.zIndex = "9999";
       sheet.classList.add("flipping");
-      // Force reflow to ensure class takes effect before transform transition
       void sheet.offsetWidth;
 
       if (toFlipped) sheet.classList.add("flipped");
       else sheet.classList.remove("flipped");
 
-      const onDone = () => {
+      const onDone = (e) => {
+        if (e.propertyName !== "transform") return;
+
         sheet.classList.remove("flipping");
-        sheet.removeEventListener("transitionend", onDone);
+
+        // Al terminar, lo mandamos atrás/adelante según el estado
+        sheet.style.zIndex = toFlipped ? sheet.dataset.zBack : sheet.dataset.zFront;
+
         isAnimating = false;
         updateUi();
       };
+
       sheet.addEventListener("transitionend", onDone, { once: true });
       updateUi();
     }
@@ -711,6 +717,7 @@
     function goNext() {
       if (isAnimating) return;
       if (currentSheet >= sheetCount - 1) return;
+
       const s = sheets()[currentSheet];
       animateSheet(s, true);
       currentSheet++;
@@ -720,6 +727,7 @@
     function goPrev() {
       if (isAnimating) return;
       if (currentSheet <= 0) return;
+
       currentSheet--;
       const s = sheets()[currentSheet];
       animateSheet(s, false);
@@ -734,9 +742,7 @@
       if (e.key === "ArrowLeft") goPrev();
     });
 
-    // =========================
-    // SWIPE
-    // =========================
+    // Swipe
     let startX = 0, startY = 0, down = false;
 
     scene.addEventListener("pointerdown", (e) => {
@@ -748,13 +754,15 @@
     scene.addEventListener("pointerup", (e) => {
       if (!down) return;
       down = false;
+
       const dx = e.clientX - startX;
       const dy = e.clientY - startY;
 
-      if (Math.abs(dy) > Math.abs(dx) * 1.2) return; // vertical intent
+      if (Math.abs(dy) > Math.abs(dx) * 1.2) return;
       if (dx < -35) goNext();
       if (dx > 35) goPrev();
     });
+
     scene.addEventListener("pointercancel", () => { down = false; });
 
     // preload images
