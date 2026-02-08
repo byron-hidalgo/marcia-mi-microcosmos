@@ -16,11 +16,12 @@
       --ink:#0B0F1A;
 
       --radius: 22px;
-      --w: min(980px, 94vw);
-      --h: min(620px, 72vh);
+      /* ✅ Mobile-first: un libro vertical, incluso en PC */
+      --bookW: min(420px, 92vw);
+      --bookH: min(760px, 84svh);
 
       --ease: cubic-bezier(.2,.8,.2,1);
-      --flipMs: 900ms;
+      --flipMs: 820ms;
 
       --accentA: #FF4D6D;
       --accentB: #7C5CFF;
@@ -56,8 +57,8 @@
     }
 
     .app{
-      width: var(--w);
-      padding: 18px 14px 26px;
+      width: min(980px, 96vw);
+      padding: 16px 12px 24px;
     }
 
     .topbar{
@@ -74,6 +75,7 @@
       align-items:center;
       gap: 12px;
       user-select:none;
+      max-width: 520px;
     }
     .logo{
       width: 40px; height: 40px;
@@ -84,6 +86,7 @@
       box-shadow: 0 14px 40px rgba(124,92,255,.25), 0 12px 30px rgba(0,0,0,.25);
       position:relative;
       overflow:hidden;
+      flex: 0 0 auto;
     }
     .logo::after{
       content:"";
@@ -101,15 +104,16 @@
 
     .brand h1{
       margin:0;
-      font-size: clamp(16px, 2.2vw, 18px);
+      font-size: 17px;
       letter-spacing:.2px;
-      font-weight: 800;
+      font-weight: 850;
       line-height:1.05;
     }
     .brand p{
-      margin:2px 0 0;
+      margin:3px 0 0;
       opacity:.78;
       font-size: 12.5px;
+      line-height: 1.25;
     }
 
     .controls{
@@ -153,32 +157,31 @@
       cursor:pointer;
       transition: transform 180ms var(--ease), background 180ms var(--ease), border-color 180ms var(--ease);
       box-shadow: 0 10px 25px rgba(0,0,0,.22);
-      font-weight: 700;
+      font-weight: 750;
       letter-spacing:.2px;
     }
     button:hover{ transform: translateY(-1px); background: rgba(255,255,255,.14); border-color: rgba(255,255,255,.22); }
     button:active{ transform: translateY(0); }
     button:disabled{ opacity:.45; cursor:not-allowed; transform:none; }
 
+    /* ✅ Stage centrado, pero el book manda */
     .stage{
       position:relative;
       width: 100%;
-      height: var(--h);
-      border-radius: calc(var(--radius) + 8px);
-      background: radial-gradient(900px 500px at 50% 0%, rgba(255,255,255,.10), transparent 70%);
-      padding: 14px;
+      display:grid;
+      place-items:center;
+      padding: 6px 0 0;
     }
 
     .hint{
-      position:absolute;
-      left: 14px;
-      bottom: 12px;
+      margin-top: 10px;
       font-size: 12px;
       opacity: .75;
       display:flex;
       gap: 8px;
       align-items:center;
       user-select:none;
+      justify-content:center;
     }
     .kbd{
       font-size: 11px;
@@ -188,11 +191,13 @@
       border:1px solid rgba(255,255,255,.16);
     }
 
-    /* ========== BOOK ========== */
+    /* ========== BOOK (vertical always) ========== */
     .scene{
-      position:absolute;
-      inset: 14px;
-      border-radius: calc(var(--radius) + 6px);
+      width: var(--bookW);
+      height: var(--bookH);
+      border-radius: calc(var(--radius) + 10px);
+      background: radial-gradient(900px 500px at 50% 0%, rgba(255,255,255,.10), transparent 70%);
+      padding: 14px;
       display:grid;
       place-items:center;
       perspective: 1800px;
@@ -201,13 +206,13 @@
     }
 
     .book{
-      width: min(980px, 100%);
-      height: min(610px, 100%);
+      width: 100%;
+      height: 100%;
       position: relative;
       transform-style: preserve-3d;
+      filter: drop-shadow(0 28px 80px rgba(0,0,0,.55));
     }
 
-    /* back plate */
     .book::before{
       content:"";
       position:absolute;
@@ -216,21 +221,20 @@
       background:
         linear-gradient(90deg,
           rgba(0,0,0,.35),
-          rgba(255,255,255,.06) 8%,
+          rgba(255,255,255,.06) 10%,
           rgba(255,255,255,.04) 50%,
-          rgba(255,255,255,.06) 92%,
+          rgba(255,255,255,.06) 90%,
           rgba(0,0,0,.32));
       box-shadow: 0 28px 80px rgba(0,0,0,.55);
       transform: translateZ(-6px);
     }
 
-    /* stacked paper edge on the right (juicy) */
     .edge{
       position:absolute;
       top: 10px;
       right: 10px;
       bottom: 10px;
-      width: 18px;
+      width: 14px;
       border-radius: 14px;
       background:
         repeating-linear-gradient(
@@ -263,7 +267,6 @@
       will-change: transform;
     }
 
-    /* The actual faces */
     .face{
       position:absolute;
       inset: 0;
@@ -273,11 +276,10 @@
       background: linear-gradient(180deg, var(--paper2), var(--paper));
       color: var(--ink);
       box-shadow: 0 18px 44px rgba(0,0,0,.22);
-      display:grid;
-      grid-template-columns: 1fr 1fr;
+      display:flex;             /* ✅ una sola columna */
+      flex-direction:column;
     }
 
-    /* make the flip VERY visible with a hinge shadow */
     .sheet::after{
       content:"";
       position:absolute;
@@ -293,54 +295,28 @@
     }
     .sheet.flipping::after{ opacity: 1; }
 
-    .face.back{
-      transform: rotateY(180deg);
-    }
+    .face.back{ transform: rotateY(180deg); }
 
-    .sheet.flipped{
-      transform: rotateY(-180deg);
-    }
+    .sheet.flipped{ transform: rotateY(-180deg); }
 
-    .gutter{
-      position:absolute;
-      top: 0; bottom: 0;
-      left: 50%;
-      width: 32px;
-      transform: translateX(-50%);
-      background: radial-gradient(18px 90% at 50% 50%, rgba(0,0,0,.18), transparent 65%);
-      pointer-events:none;
-      opacity:.95;
-      transform-style: preserve-3d;
-      translate: 0 0;
-    }
-
-    @media (max-width: 740px){
-      :root{ --h: min(660px, 78svh); --flipMs: 620ms; }
-      .face{ grid-template-columns: 1fr; }
-      .gutter{ display:none; }
-      .edge{ width: 12px; opacity: .45; }
-      .face .pane:nth-child(2){ display:none !important; } /* hide right pane on mobile */
-    }
-
-    /* content blocks */
+    /* content blocks (vertical) */
     .pane{
-      padding: clamp(14px, 2.2vw, 22px);
+      padding: 18px;
       display:flex;
       flex-direction:column;
       gap: 12px;
-      justify-content:space-between;
       min-height: 100%;
       position:relative;
     }
 
     .hero{
-      height: 100%;
-      min-height: 250px;
+      height: 320px;
       border-radius: 18px;
       overflow:hidden;
       position:relative;
       background: rgba(0,0,0,.06);
       box-shadow: 0 16px 40px rgba(0,0,0,.12);
+      flex: 0 0 auto;
     }
     .hero img{
       width:100%;
@@ -356,7 +332,7 @@
       content:"";
       position:absolute; inset:0;
       background:
-        linear-gradient(180deg, transparent 40%, rgba(0,0,0,.25)),
+        linear-gradient(180deg, transparent 40%, rgba(0,0,0,.30)),
         radial-gradient(60% 45% at 70% 20%, rgba(255,255,255,.22), transparent 60%);
       pointer-events:none;
     }
@@ -366,7 +342,7 @@
       align-items:center;
       gap:8px;
       font-size: 12px;
-      font-weight: 780;
+      font-weight: 800;
       letter-spacing:.35px;
       text-transform: uppercase;
       color: rgba(255,255,255,.94);
@@ -376,8 +352,9 @@
       box-shadow: 0 16px 36px rgba(124,92,255,.22);
       width: fit-content;
       position:absolute;
-      left: 14px;
-      top: 14px;
+      left: 16px;
+      top: 16px;
+      z-index: 2;
     }
     .tag .spark{
       width: 9px; height: 9px; border-radius: 50%;
@@ -387,10 +364,10 @@
 
     .title{
       margin: 0;
-      font-size: clamp(20px, 2.4vw, 28px);
+      font-size: 24px;
       line-height: 1.08;
       letter-spacing: .1px;
-      font-weight: 880;
+      font-weight: 900;
     }
     .subtitle{
       margin: 0;
@@ -400,31 +377,31 @@
     }
     .text{
       margin: 0;
-      font-size: clamp(14px, 1.6vw, 15.5px);
-      line-height: 1.62;
+      font-size: 15.2px;
+      line-height: 1.68;
       color: rgba(10,12,18,.88);
     }
 
     .footer{
+      margin-top:auto;
       display:flex;
       justify-content:space-between;
       align-items:center;
       gap: 10px;
-      margin-top: 6px;
+      padding-top: 6px;
     }
     .pnum{
       font-size: 12px;
       color: rgba(10,12,18,.55);
-      font-weight: 800;
+      font-weight: 850;
       letter-spacing:.2px;
     }
     .mini{
       font-size: 12px;
       color: rgba(10,12,18,.62);
-      font-weight: 750;
+      font-weight: 800;
     }
 
-    /* Cover */
     .cover{
       background:
         radial-gradient(900px 600px at 30% 20%, rgba(124,92,255,.22), transparent 60%),
@@ -470,7 +447,6 @@
       <div class="scene" id="scene">
         <div class="book" role="application" aria-label="Libro interactivo">
           <div class="edge" aria-hidden="true"></div>
-          <div class="gutter" aria-hidden="true"></div>
           <div class="sheets" id="sheets"></div>
         </div>
       </div>
@@ -483,9 +459,6 @@
   </div>
 
   <script>
-    // =========================
-    // CONTENIDO (BOSQUEJO)
-    // =========================
     const PAGES = [
       {
         kind: "cover",
@@ -499,63 +472,63 @@
         tag: "Capítulo 1",
         title: "Una primera página suave",
         subtitle: "Esto es un bosquejo. Después lo llenamos con tu historia real.",
-        text: "Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Amet venenatis urna cursus eget nunc.",
+        text: "Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.",
         image: "https://images.unsplash.com/photo-1519681393784-d120267933ba?auto=format&fit=crop&w=1400&q=80"
       },
       {
         tag: "Capítulo 1",
         title: "Detalles pequeños, efecto grande",
         subtitle: "Una carta no se lee: se recorre.",
-        text: "Eget arcu dictum varius duis at consectetur lorem. Ultrices tincidunt arcu non sodales neque sodales. Ipsum consequat nisl vel pretium lectus quam id leo.",
+        text: "Eget arcu dictum varius duis at consectetur lorem. Ultrices tincidunt arcu non sodales neque sodales.",
         image: "https://images.unsplash.com/photo-1516574187841-cb9cc2ca948b?auto=format&fit=crop&w=1400&q=80"
       },
       {
         tag: "Capítulo 2",
         title: "Un recuerdo inventado (por ahora)",
         subtitle: "Aquí después van tus frases reales, tus hitos, tus símbolos.",
-        text: "Vitae congue mauris rhoncus aenean vel elit scelerisque mauris pellentesque. Nibh mauris cursus mattis molestie a iaculis. Convallis posuere morbi leo urna molestie.",
+        text: "Vitae congue mauris rhoncus aenean vel elit scelerisque mauris pellentesque.",
         image: "https://images.unsplash.com/photo-1469474968028-56623f02e42e?auto=format&fit=crop&w=1400&q=80"
       },
       {
         tag: "Capítulo 2",
         title: "Ritmo cómodo",
         subtitle: "Paso de páginas suave, sin marear, con transición elegante.",
-        text: "Feugiat sed lectus vestibulum mattis ullamcorper velit sed. Sit amet nisl suscipit adipiscing bibendum est ultricies. Arcu cursus vitae congue mauris rhoncus.",
+        text: "Feugiat sed lectus vestibulum mattis ullamcorper velit sed. Sit amet nisl suscipit adipiscing bibendum est ultricies.",
         image: "https://images.unsplash.com/photo-1520975869012-0f72e6b5f7a8?auto=format&fit=crop&w=1400&q=80"
       },
       {
         tag: "Capítulo 3",
         title: "Una página luminosa",
         subtitle: "Una foto bonita + texto breve siempre pega fuerte.",
-        text: "Cras sed felis eget velit aliquet. Sit amet massa vitae tortor condimentum lacinia. Pulvinar etiam non quam lacus suspendisse faucibus interdum posuere.",
+        text: "Cras sed felis eget velit aliquet. Sit amet massa vitae tortor condimentum lacinia.",
         image: "https://images.unsplash.com/photo-1500530855697-b586d89ba3ee?auto=format&fit=crop&w=1400&q=80"
       },
       {
         tag: "Capítulo 3",
         title: "Un mensaje escondido",
         subtitle: "Después puedes meter pistas, cupones, capítulos, sorpresas.",
-        text: "Suspendisse potenti nullam ac tortor vitae purus faucibus ornare suspendisse. In hac habitasse platea dictumst vestibulum rhoncus est pellentesque elit.",
+        text: "Suspendisse potenti nullam ac tortor vitae purus faucibus ornare suspendisse.",
         image: "https://images.unsplash.com/photo-1518837695005-2083093ee35b?auto=format&fit=crop&w=1400&q=80"
       },
       {
         tag: "Capítulo 4",
         title: "El estilo ya está",
         subtitle: "Tú reemplazas el contenido y queda listo.",
-        text: "Mauris rhoncus aenean vel elit scelerisque mauris pellentesque pulvinar. Malesuada nunc vel risus commodo viverra maecenas accumsan lacus vel facilisis.",
+        text: "Mauris rhoncus aenean vel elit scelerisque mauris pellentesque pulvinar. Malesuada nunc vel risus commodo viverra.",
         image: "https://images.unsplash.com/photo-1520975916090-3105956dac38?auto=format&fit=crop&w=1400&q=80"
       },
       {
         tag: "Final",
         title: "Cierre (por ahora)",
         subtitle: "La última página puede ser promesa, invitación o un ‘te elijo’.",
-        text: "Amet consectetur adipiscing elit duis tristique sollicitudin nibh sit. Eu feugiat pretium nibh ipsum consequat nisl vel pretium lectus. Nunc sed velit dignissim sodales.",
+        text: "Amet consectetur adipiscing elit duis tristique sollicitudin nibh sit. Eu feugiat pretium nibh ipsum consequat.",
         image: "https://images.unsplash.com/photo-1520975869012-0f72e6b5f7a8?auto=format&fit=crop&w=1400&q=80"
       },
       {
         tag: "Final",
         title: "Fin ✦",
         subtitle: "Cuando quieras, lo personalizamos completo con tu texto real.",
-        text: "Lorem ipsum dolor sit amet. Tempus iaculis urna id volutpat lacus laoreet non. Tellus cras adipiscing enim eu turpis egestas pretium aenean pharetra.",
+        text: "Lorem ipsum dolor sit amet. Tempus iaculis urna id volutpat lacus laoreet non.",
         image: "https://images.unsplash.com/photo-1516574187841-cb9cc2ca948b?auto=format&fit=crop&w=1400&q=80"
       }
     ];
@@ -579,7 +552,6 @@
         .replaceAll("'", "&#039;");
     }
 
-    // ✅ IMPORTANTE: esto ya NO retorna un div.face
     function makeInner(page, pageNumber) {
       const tag = escapeHtml(page?.tag ?? "");
       const title = escapeHtml(page?.title ?? "");
@@ -601,37 +573,11 @@
             <h2 class="title">${title}</h2>
             <p class="subtitle">${subtitle}</p>
             <p class="text">${text}</p>
-
-            <div class="footer">
-              <span class="mini">Hecho por mí</span>
-              <span class="pnum">${pageNumber}</span>
-            </div>
           </div>
-        </div>
 
-        <div class="pane" aria-hidden="true" style="display:flex; justify-content:center; gap:14px;">
-          <div style="
-            border-radius:18px;
-            background: rgba(0,0,0,.04);
-            border: 1px solid rgba(0,0,0,.06);
-            padding: 14px;
-            box-shadow: 0 16px 40px rgba(0,0,0,.10);
-            ">
-            <div style="
-              width: 100%;
-              height: 210px;
-              border-radius: 16px;
-              background:
-                radial-gradient(120px 90px at 20% 25%, rgba(255,77,109,.25), transparent 60%),
-                radial-gradient(140px 110px at 80% 40%, rgba(124,92,255,.22), transparent 60%),
-                radial-gradient(160px 120px at 40% 80%, rgba(60,229,210,.18), transparent 60%),
-                linear-gradient(180deg, rgba(0,0,0,.05), rgba(0,0,0,.02));
-              margin-bottom: 12px;
-            "></div>
-            <div style="font-weight:880; font-size:16px; color: rgba(10,12,18,.86);">Nota bonita</div>
-            <div style="opacity:.72; font-size:13px; line-height:1.5; color: rgba(10,12,18,.82);">
-              Aquí puedes poner una frase corta, un mini “te elijo”, o un detalle (fecha, lugar, promesa).
-            </div>
+          <div class="footer">
+            <span class="mini">Hecho por mí</span>
+            <span class="pnum">${pageNumber}</span>
           </div>
         </div>
       `;
@@ -654,17 +600,14 @@
         sheet.className = "sheet";
         sheet.dataset.index = String(i);
 
-        // Guardamos z-index para stacking real
-        sheet.dataset.zFront = String(sheetCount - i); // adelante
-        sheet.dataset.zBack  = String(i + 1);          // atrás (cuando se voltea)
+        sheet.dataset.zFront = String(sheetCount - i);
+        sheet.dataset.zBack  = String(i + 1);
         sheet.style.zIndex = sheet.dataset.zFront;
 
-        // FRONT face
         const frontEl = document.createElement("div");
         frontEl.className = "face" + (front?.kind === "cover" ? " cover" : "");
         frontEl.innerHTML = makeInner(front, frontNum);
 
-        // BACK face
         const backEl = document.createElement("div");
         backEl.className = "face back" + (back?.kind === "cover" ? " cover" : "");
         backEl.innerHTML = makeInner(back, backNum);
@@ -689,8 +632,6 @@
 
     function animateSheet(sheet, toFlipped) {
       isAnimating = true;
-
-      // Mientras gira, lo ponemos arriba para que el flip se vea limpio
       sheet.style.zIndex = "9999";
       sheet.classList.add("flipping");
       void sheet.offsetWidth;
@@ -702,8 +643,6 @@
         if (e.propertyName !== "transform") return;
 
         sheet.classList.remove("flipping");
-
-        // Al terminar, lo mandamos atrás/adelante según el estado
         sheet.style.zIndex = toFlipped ? sheet.dataset.zBack : sheet.dataset.zFront;
 
         isAnimating = false;
@@ -742,7 +681,6 @@
       if (e.key === "ArrowLeft") goPrev();
     });
 
-    // Swipe
     let startX = 0, startY = 0, down = false;
 
     scene.addEventListener("pointerdown", (e) => {
@@ -765,7 +703,6 @@
 
     scene.addEventListener("pointercancel", () => { down = false; });
 
-    // preload images
     (function preload(){
       for (const p of PAGES) {
         if (!p?.image) continue;
