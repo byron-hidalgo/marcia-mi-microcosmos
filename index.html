@@ -17,7 +17,8 @@
 
       --radius: 22px;
       --bookW: min(420px, 92vw);
-      --bookH: min(760px, 94svh);
+      /* ✅ El alto lo controla JS para que NUNCA se recorte el texto */
+      --bookH: 760px;
 
       --ease: cubic-bezier(.2,.8,.2,1);
       --flipMs: 820ms;
@@ -26,17 +27,19 @@
       --accentB: #7C5CFF;
       --accentC: #3CE5D2;
 
-      /* ✅ NUEVO: control fino del “aire” */
       --spaceSubtitle: 10px; /* separación título -> subtítulo */
       --spaceText: 14px;     /* separación subtítulo -> párrafo */
     }
 
+    /* ✅ IMPORTANTE: permitir scroll del navegador en móvil */
     body{
       margin:0;
       min-height: 100dvh;
-      height: 100dvh;
-      display:grid;
-      place-items:center;
+      height: auto;
+      display:flex;
+      justify-content:center;
+      align-items:flex-start;
+      padding: 14px 0 40px;
       color: rgba(255,255,255,.92);
       background:
         radial-gradient(1200px 800px at 10% 10%, rgba(124,92,255,.18), transparent 55%),
@@ -44,9 +47,10 @@
         radial-gradient(1000px 700px at 50% 90%, rgba(255,77,109,.16), transparent 60%),
         linear-gradient(180deg, var(--bg0), var(--bg1));
       overflow-x:hidden;
+      overflow-y:auto;
       font-family: ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial;
     }
-    
+
     body::before{
       content:"";
       position:fixed; inset:-40px;
@@ -195,23 +199,22 @@
       border:1px solid rgba(255,255,255,.16);
     }
 
+    /* ✅ El alto del libro se ajusta y la página (body) scrollea normal */
     .scene{
       width: var(--bookW);
       height: var(--bookH);
-      max-height: 94dvh;   
       border-radius: calc(var(--radius) + 10px);
       background: radial-gradient(900px 500px at 50% 0%, rgba(255,255,255,.10), transparent 70%);
-      padding: 10px 0;  
+      padding: 10px 0;
       display:grid;
       place-items:center;
       perspective: 1800px;
       transform: translateZ(0);
-      touch-action: pan-y;
+      touch-action: pan-y; /* scroll vertical permitido */
     }
     .book{
       width: 100%;
       height: 100%;
-      max-height: 92dvh;
       position: relative;
       transform-style: preserve-3d;
       filter: drop-shadow(0 28px 80px rgba(0,0,0,.55));
@@ -275,7 +278,7 @@
       position:absolute;
       inset: 0;
       border-radius: var(--radius);
-      overflow:hidden;
+      overflow:hidden; /* se mantiene “look libro” */
       backface-visibility: hidden;
       background: linear-gradient(180deg, var(--paper2), var(--paper));
       color: var(--ink);
@@ -307,10 +310,11 @@
       display:flex;
       flex-direction:column;
       gap: 12px;
-      min-height: 100%;
+      height: 100%;
       position:relative;
     }
 
+    /* en móvil, si te queda muy gigante la imagen, baja esto un poquito */
     .hero{
       height: 320px;
       border-radius: 18px;
@@ -364,7 +368,6 @@
       box-shadow: 0 0 0 6px rgba(255,255,255,.14);
     }
 
-    /* ✅ NUEVO: bloque de texto con justificado */
     .copy{
       text-align: justify;
       text-justify: inter-word;
@@ -378,11 +381,9 @@
       line-height: 1.08;
       letter-spacing: .1px;
       font-weight: 900;
-      /* Si QUIERES el título también “full justificado”, borra esta línea: */
       text-align: left;
     }
 
-    /* ✅ MÁS AIRE entre elementos */
     .subtitle{
       margin: var(--spaceSubtitle) 0 0;
       font-size: 13.5px;
@@ -450,7 +451,7 @@
       <div class="controls">
         <div class="pill" title="Estado del libro">
           <span class="dot" aria-hidden="true"></span>
-          <div class="meta" id="statusText">Página 1 / 5</div>
+          <div class="meta" id="statusText">Página 1 / 1</div>
         </div>
         <button id="prevBtn" type="button" aria-label="Página anterior">← Atrás</button>
         <button id="nextBtn" type="button" aria-label="Página siguiente">Siguiente →</button>
@@ -515,7 +516,7 @@
         tag: "Por siempre",
         title: "Nuestro romance es fascinante",
         subtitle: "Y te volvería a elegir como mi amada",
-        text: "Quiero cuidarte mejor, escucharte de verdad y demostrarte lo importante que eres para mí. Estoy aprendiendo, y voy a tomar cada oportunidad para mejorar y no descansaré hasta ser el hombre de tus sueños y hacer de nuestro romance un espacio seguro. Empecé a volverme loco por ti desde aquella vez que nos dimos un abrazo en el Zacha que fue tan largo como Wonderwall de fondo y me di cuenta del enorme cariño que sentía cuando llevaba tu librito de copiloto para el primer capítulo de Navidad de Marcia chiquita. Desde ese momento te quiero y quiero seguir construyendo mi vida contigo. ",
+        text: "Quiero cuidarte mejor, escucharte de verdad y demostrarte lo importante que eres para mí. Estoy aprendiendo, y voy a tomar cada oportunidad para mejorar y no descansaré hasta ser el hombre de tus sueños y hacer de nuestro romance un espacio seguro. Empecé a volverme loco por ti desde aquella vez que nos dimos un abrazo en el Zacha que fue tan largo como Wonderwall de fondo y me di cuenta del enorme cariño que sentía cuando llevaba tu librito de copiloto para el primer capítulo de Navidad de Marcia chiquita. Desde ese momento te quiero y quiero seguir construyendo mi vida contigo.",
         image: "images/cuidarte.jpeg"
       },
       { tag: "", title: "", subtitle: "", text: "", image: "" },
@@ -527,7 +528,6 @@
         text: "Te amo con el alma mi vida y quería darte un regalo que pudieses llevar a todos lados, para que puedas recordar el gran amor que te tengo en cualquier momento de tu vida. Espero que este día sea de tu agrado, porque tengo muchas aventuras preparadas para nosotros y me encanta poder planificar nuevas actividades para coleccionar juntitos, porque la vida ilumina más a través de tus ojos. Celebraremos este día, pero me preocuparé de que todos los días de nuestro romance sean el día del amor. Buen día amor de mi vida.",
         image: "images/beso.jpeg"
       },
-      
     ];
 
     const sheetsEl = document.getElementById("sheets");
@@ -586,7 +586,6 @@
             ${heroHtml}
           </div>
 
-          <!-- ✅ AQUÍ está el bloque “debajo de la imagen” -->
           <div class="copy">
             <h2 class="title">${title}</h2>
             <p class="subtitle">${subtitle}</p>
@@ -638,11 +637,14 @@
 
     function clamp(n, a, b){ return Math.max(a, Math.min(b, n)); }
 
-    function updateUi() {
-      const totalRealPages = sheetCount;
-      const pageNow = clamp(currentSheet + 1, 1, totalRealPages);
+    function visiblePageIndex() {
+      // Cuando estás parado en "currentSheet", la cara visible es la FRONT de esa hoja
+      return clamp(currentSheet * 2, 0, Math.max(0, PAGES.length - 1));
+    }
 
-      statusText.textContent = `Página ${pageNow} / ${totalRealPages}`;
+    function updateUi() {
+      const idx = visiblePageIndex();
+      statusText.textContent = `Página ${idx + 1} / ${PAGES.length}`;
       prevBtn.disabled = currentSheet === 0 || isAnimating;
       nextBtn.disabled = currentSheet >= sheetCount - 1 || isAnimating;
     }
@@ -673,6 +675,7 @@
         sheet.style.zIndex = toFlipped ? sheet.dataset.zBack : sheet.dataset.zFront;
 
         isAnimating = false;
+        fitBookHeightToVisiblePage();  // ✅ clave: ajusta alto para que NO se recorte
         updateUi();
       };
 
@@ -735,6 +738,7 @@
       startY = e.clientY;
     });
 
+    /* ✅ corregido: era "scenhe" */
     scene.addEventListener("pointerup", (e) => {
       if (!down) return;
       down = false;
@@ -742,6 +746,7 @@
       const dx = e.clientX - startX;
       const dy = e.clientY - startY;
 
+      // si fue más vertical que horizontal, dejamos que sea scroll normal
       if (Math.abs(dy) > Math.abs(dx) * 1.2) return;
       if (dx < -35) goNext();
       if (dx > 35) goPrev();
@@ -757,7 +762,68 @@
       }
     })();
 
+    /* =========================
+       ✅ AUTO-FIT: alto del libro según el contenido visible
+       ========================= */
+    const pageHeightCache = new Map();
+
+    function measurePageHeight(pageIndex) {
+      if (pageHeightCache.has(pageIndex)) return pageHeightCache.get(pageIndex);
+
+      const page = PAGES[pageIndex] || null;
+      const pageNumber = pageIndex + 1;
+
+      const w = scene.getBoundingClientRect().width;
+
+      const wrap = document.createElement("div");
+      wrap.style.position = "fixed";
+      wrap.style.left = "-10000px";
+      wrap.style.top = "0";
+      wrap.style.width = `${w}px`;
+      wrap.style.visibility = "hidden";
+      wrap.style.pointerEvents = "none";
+
+      const face = document.createElement("div");
+      face.className = "face" + (page?.kind === "cover" ? " cover" : "");
+      face.style.position = "relative";
+      face.style.inset = "auto";
+      face.style.height = "auto";         // importante: sin límite
+      face.style.overflow = "visible";    // medir el total real
+      face.innerHTML = makeInner(page, pageNumber);
+
+      wrap.appendChild(face);
+      document.body.appendChild(wrap);
+
+      const h = Math.ceil(face.getBoundingClientRect().height);
+
+      document.body.removeChild(wrap);
+
+      // Margen extra por sombras + borde para que jamás “muerda”
+      const padded = h + 10;
+      pageHeightCache.set(pageIndex, padded);
+      return padded;
+    }
+
+    function fitBookHeightToVisiblePage() {
+      const idx = visiblePageIndex();
+      const h = measurePageHeight(idx);
+
+      // mínimo estético (por si hay página casi vacía)
+      const minH = 520;
+      const finalH = Math.max(minH, h);
+
+      document.documentElement.style.setProperty("--bookH", `${finalH}px`);
+    }
+
+    // Recalcular en cambios de orientación / resize
+    window.addEventListener("resize", () => {
+      pageHeightCache.clear();
+      fitBookHeightToVisiblePage();
+      updateUi();
+    });
+
     buildBook();
+    fitBookHeightToVisiblePage();
     updateUi();
   </script>
 </body>
