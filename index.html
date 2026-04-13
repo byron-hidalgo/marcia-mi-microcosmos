@@ -17,7 +17,7 @@
 
       --radius: 22px;
       --bookW: min(420px, 92vw);
-      --bookH: 760px; /* ✅ se setea por JS al máximo */
+      --bookH: 760px;
 
       --ease: cubic-bezier(.2,.8,.2,1);
       --flipMs: 820ms;
@@ -30,7 +30,6 @@
       --spaceText: 14px;
     }
 
-    /* ✅ Scroll normal del navegador (móvil) */
     body{
       margin:0;
       min-height: 100dvh;
@@ -172,6 +171,16 @@
     button:active{ transform: translateY(0); }
     button:disabled{ opacity:.45; cursor:not-allowed; transform:none; }
 
+    /* ✨ Botón especial "Viajar al final" */
+    #endBtn{
+      background: linear-gradient(135deg, rgba(255,77,109,.35), rgba(124,92,255,.35));
+      border-color: rgba(255,77,109,.45);
+    }
+    #endBtn:hover:not(:disabled){
+      background: linear-gradient(135deg, rgba(255,77,109,.50), rgba(124,92,255,.50));
+      border-color: rgba(255,77,109,.65);
+    }
+
     .stage{
       position:relative;
       width: 100%;
@@ -198,7 +207,6 @@
       border:1px solid rgba(255,255,255,.16);
     }
 
-    /* ✅ Alto fijo para TODAS las páginas (máximo calculado) */
     .scene{
       width: var(--bookW);
       height: var(--bookH);
@@ -209,7 +217,7 @@
       place-items:center;
       perspective: 1800px;
       transform: translateZ(0);
-      touch-action: pan-y; /* swipe vertical = scroll normal */
+      touch-action: pan-y;
     }
 
     .book{
@@ -278,7 +286,7 @@
       position:absolute;
       inset: 0;
       border-radius: var(--radius);
-      overflow:hidden; /* look “libro” */
+      overflow:hidden;
       backface-visibility: hidden;
       background: linear-gradient(180deg, var(--paper2), var(--paper));
       color: var(--ink);
@@ -314,7 +322,6 @@
       position:relative;
     }
 
-    /* Imagen fija (no afecta medidas por carga) */
     .hero{
       height: 320px;
       border-radius: 18px;
@@ -400,7 +407,7 @@
     .footer{
       margin-top:auto;
       display:flex;
-      justify-content:flex-end; /* ✅ solo número de página */
+      justify-content:flex-end;
       align-items:center;
       padding-top: 6px;
     }
@@ -448,6 +455,7 @@
           <div class="meta" id="statusText">Página 1 / 1</div>
         </div>
         <button id="prevBtn" type="button" aria-label="Página anterior">← Atrás</button>
+        <button id="endBtn" type="button" aria-label="Ir a la última página">✨ Viajar al final</button>
         <button id="nextBtn" type="button" aria-label="Página siguiente">Siguiente →</button>
       </div>
     </div>
@@ -474,7 +482,7 @@
         tag: "Había una vez...",
         title: "Nuestro microcosmos, en forma de librito ✨",
         subtitle: "Porque el amor que siento por ti no cabe en mí.",
-        text: "Me gusta descubrir nuevas maneras de decirte ‘te amo’ sin repetir las mismas palabras. Te amo cada vez que te cuento cuentos, te amo cada vez que nos tomamos de la mano, te amo cada vez que sonríes, te amo ayer, te amo hoy y te amaré mañana simplemente porque amo tu existencia. Y hoy, con todo lo que siento por ti, decidí crear un espacio donde el mundo pueda ver un pedacito de nuestro microcosmos.",
+        text: "Me gusta descubrir nuevas maneras de decirte 'te amo' sin repetir las mismas palabras. Te amo cada vez que te cuento cuentos, te amo cada vez que nos tomamos de la mano, te amo cada vez que sonríes, te amo ayer, te amo hoy y te amaré mañana simplemente porque amo tu existencia. Y hoy, con todo lo que siento por ti, decidí crear un espacio donde el mundo pueda ver un pedacito de nuestro microcosmos.",
         image: "images/amarte.jpeg"
       },
       { tag: "", title: "", subtitle: "", text: "", image: "" },
@@ -555,11 +563,13 @@
     const statusText = document.getElementById("statusText");
     const prevBtn = document.getElementById("prevBtn");
     const nextBtn = document.getElementById("nextBtn");
+    const endBtn = document.getElementById("endBtn");
     const scene = document.getElementById("scene");
 
     const sheetCount = Math.ceil(PAGES.length / 2);
     let currentSheet = 0;
     let isAnimating = false;
+    let isTravelingToEnd = false; // ✅ flag para el viaje al final
 
     function escapeHtml(str) {
       return String(str ?? "")
@@ -661,6 +671,11 @@
       statusText.textContent = `Página ${now} / ${total}`;
       prevBtn.disabled = currentSheet === 0 || isAnimating;
       nextBtn.disabled = currentSheet >= sheetCount - 1 || isAnimating;
+
+      // ✅ "Viajar al final" solo visible y activo si no estamos en la última hoja
+      const atEnd = currentSheet >= sheetCount - 1;
+      endBtn.disabled = atEnd || isAnimating;
+      endBtn.style.display = atEnd ? "none" : "";
     }
 
     function sheets(){ return Array.from(document.querySelectorAll(".sheet")); }
@@ -671,6 +686,7 @@
       isAnimating = true;
       prevBtn.disabled = true;
       nextBtn.disabled = true;
+      endBtn.disabled = true;
 
       sheet.style.zIndex = "9999";
       sheet.classList.add("flipping");
@@ -735,12 +751,76 @@
       updateUi();
     }
 
+    // ✅ Viaja al final pasando por todas las páginas con animación
+    const DEFAULT_FLIP_MS = 820;
+
+    function goToEnd() {
+      if (isAnimating || isTravelingToEnd) return;
+      if (currentSheet >= sheetCount - 1) return;
+
+      isTravelingToEnd = true;
+      endBtn.disabled = true;
+      prevBtn.disabled = true;
+      nextBtn.disabled = true;
+
+      // ✅ Velocidad x2: reducimos --flipMs a la mitad
+      document.documentElement.style.setProperty("--flipMs", `${DEFAULT_FLIP_MS / 2}ms`);
+
+      const flipDuration = DEFAULT_FLIP_MS / 2;
+      const pauseBetween = 90; // pausa también reducida proporcionalmente
+
+      function flipNext() {
+        if (currentSheet >= sheetCount - 1) {
+          // Llegamos al final
+          isTravelingToEnd = false;
+          isAnimating = false;
+          updateUi();
+          return;
+        }
+
+        const all = sheets();
+        const s = all[currentSheet];
+        if (!s) { isTravelingToEnd = false; updateUi(); return; }
+
+        // Lanza la animación de esta hoja
+        s.style.zIndex = "9999";
+        s.classList.add("flipping");
+        void s.offsetWidth;
+        s.classList.add("flipped");
+
+        currentSheet++;
+        isAnimating = true;
+        updateUi(); // actualiza el contador en tiempo real
+
+        // Espera a que termine el flip, luego lanza el siguiente
+        setTimeout(() => {
+          s.classList.remove("flipping");
+          s.style.zIndex = s.dataset.zBack;
+          isAnimating = false;
+
+          if (currentSheet < sheetCount - 1) {
+            // Hay más hojas, continúa
+            setTimeout(flipNext, pauseBetween);
+          } else {
+            // Última hoja, fin del viaje — restaura velocidad normal
+            isTravelingToEnd = false;
+            isAnimating = false;
+            document.documentElement.style.setProperty("--flipMs", `${DEFAULT_FLIP_MS}ms`);
+            updateUi();
+          }
+        }, flipDuration + 100);
+      }
+
+      flipNext();
+    }
+
     prevBtn.addEventListener("click", goPrev);
     nextBtn.addEventListener("click", goNext);
+    endBtn.addEventListener("click", goToEnd);
 
     window.addEventListener("keydown", (e) => {
-      if (e.key === "ArrowRight") goNext();
-      if (e.key === "ArrowLeft") goPrev();
+      if (e.key === "ArrowRight") { if (!isTravelingToEnd) goNext(); }
+      if (e.key === "ArrowLeft")  { if (!isTravelingToEnd) goPrev(); }
     });
 
     let startX = 0, startY = 0, down = false;
@@ -754,11 +834,11 @@
     scene.addEventListener("pointerup", (e) => {
       if (!down) return;
       down = false;
+      if (isTravelingToEnd) return; // bloquea swipe mientras viaja
 
       const dx = e.clientX - startX;
       const dy = e.clientY - startY;
 
-      // vertical swipe => scroll normal
       if (Math.abs(dy) > Math.abs(dx) * 1.2) return;
       if (dx < -35) goNext();
       if (dx > 35) goPrev();
@@ -774,9 +854,6 @@
       }
     })();
 
-    /* =========================
-       ✅ ALTURA FIJA = MAX de todas las páginas
-       ========================= */
     const heightCache = new Map();
 
     function measurePageHeight(pageIndex) {
@@ -802,7 +879,6 @@
       face.style.overflow = "visible";
       face.innerHTML = makeInner(page, pageNumber);
 
-      // Evita que percent/min-height afecte medición en algunos browsers
       const pane = face.querySelector(".pane");
       if (pane) {
         pane.style.minHeight = "auto";
@@ -815,7 +891,7 @@
       const h = Math.ceil(face.getBoundingClientRect().height);
       document.body.removeChild(wrap);
 
-      const padded = h + 10; // margen anti-mordida
+      const padded = h + 10;
       heightCache.set(pageIndex, padded);
       return padded;
     }
@@ -846,15 +922,13 @@
     // 🔔 NEW CONTENT NOTIFICATION
     // ==============================
     
-    const CONTENT_VERSION = "v3"; // cambia esto cada vez que agrego contenido
+    const CONTENT_VERSION = "v3";
     
     function checkForNewContent() {
       const seenVersion = localStorage.getItem("seen_version");
     
       if (seenVersion !== CONTENT_VERSION) {
         showNewContentPopup();
-    
-        // Marca como visto SOLO en este dispositivo
         localStorage.setItem("seen_version", CONTENT_VERSION);
       }
     }
@@ -864,7 +938,6 @@
     
       popup.textContent = "✨ Hay algo nuevo esperándote aquí, mi amor";
     
-      // estilos
       popup.style.position = "fixed";
       popup.style.bottom = "24px";
       popup.style.left = "50%";
@@ -882,13 +955,11 @@
     
       document.body.appendChild(popup);
     
-      // animación entrada
       requestAnimationFrame(() => {
         popup.style.opacity = "1";
         popup.style.transform = "translateX(-50%) scale(1)";
       });
     
-      // desaparecer
       setTimeout(() => {
         popup.style.opacity = "0";
         popup.style.transform = "translateX(-50%) scale(0.9)";
@@ -896,7 +967,6 @@
       }, 17500);
     }
     
-    // Ejecutar al cargar
     checkForNewContent();
   </script>
 </body>
