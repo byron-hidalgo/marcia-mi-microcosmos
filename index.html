@@ -846,7 +846,7 @@
     // 🔔 NEW CONTENT NOTIFICATION
     // ==============================
     
-    const CONTENT_VERSION = "v1"; // cambia esto cada vez que agrego contenido
+    const CONTENT_VERSION = "v2"; // cambia esto cada vez que agrego contenido
     
     function checkForNewContent() {
       const seenVersion = localStorage.getItem("seen_version");
@@ -893,7 +893,7 @@
         popup.style.opacity = "0";
         popup.style.transform = "translateX(-50%) scale(0.9)";
         setTimeout(() => popup.remove(), 300);
-      }, 3500);
+      }, 7500);
     }
     
     // Ejecutar al cargar
