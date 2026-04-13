@@ -840,6 +840,64 @@
     buildBook();
     fitBookHeightToMaxPage();
     updateUi();
+
+
+    // ==============================
+    // 🔔 NEW CONTENT NOTIFICATION
+    // ==============================
+    
+    const CONTENT_VERSION = "v1"; // cambia esto cada vez que agrego contenido
+    
+    function checkForNewContent() {
+      const seenVersion = localStorage.getItem("seen_version");
+    
+      if (seenVersion !== CONTENT_VERSION) {
+        showNewContentPopup();
+    
+        // Marca como visto SOLO en este dispositivo
+        localStorage.setItem("seen_version", CONTENT_VERSION);
+      }
+    }
+    
+    function showNewContentPopup() {
+      const popup = document.createElement("div");
+    
+      popup.textContent = "✨ Hay algo nuevo esperándote aquí, mi amor";
+    
+      // estilos
+      popup.style.position = "fixed";
+      popup.style.bottom = "24px";
+      popup.style.left = "50%";
+      popup.style.transform = "translateX(-50%) scale(0.9)";
+      popup.style.padding = "14px 20px";
+      popup.style.borderRadius = "14px";
+      popup.style.background = "linear-gradient(135deg, #FF4D6D, #7C5CFF)";
+      popup.style.color = "#fff";
+      popup.style.fontWeight = "800";
+      popup.style.fontSize = "14px";
+      popup.style.zIndex = "99999";
+      popup.style.boxShadow = "0 12px 40px rgba(0,0,0,.35)";
+      popup.style.opacity = "0";
+      popup.style.transition = "all 300ms ease";
+    
+      document.body.appendChild(popup);
+    
+      // animación entrada
+      requestAnimationFrame(() => {
+        popup.style.opacity = "1";
+        popup.style.transform = "translateX(-50%) scale(1)";
+      });
+    
+      // desaparecer
+      setTimeout(() => {
+        popup.style.opacity = "0";
+        popup.style.transform = "translateX(-50%) scale(0.9)";
+        setTimeout(() => popup.remove(), 300);
+      }, 3500);
+    }
+    
+    // Ejecutar al cargar
+    checkForNewContent();
   </script>
 </body>
 </html>
