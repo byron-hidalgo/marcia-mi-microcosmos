@@ -275,6 +275,12 @@
 
     .book-host{ touch-action: pan-y; user-select: none; -webkit-user-select: none; }
 
+    /* La hoja y su sombra no pueden salirse del escenario: si se salían por la derecha,
+       la página se ensanchaba en cada cuadro y el celular reacomodaba la vista
+       (salto hacia arriba y tiriteo al pasar a la página siguiente) */
+    .stage{ overflow: hidden; overflow: clip; }
+    html, body, .book-host, .book-host *{ overflow-anchor: none; }
+
     /* Mientras se mide el alto de las páginas */
     .measure .page{ height: auto; }
 
