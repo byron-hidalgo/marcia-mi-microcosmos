@@ -1,0 +1,9 @@
+{
+  "name": "marcia-mi-microcosmos",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "node dev/server.mjs",
+    "check": "node dev/check.mjs"
+  }
+}
