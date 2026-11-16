@@ -5,13 +5,22 @@
   const lista = window.CELEBRACIONES || [];
   const DURACION = window.CELEBRACION_DURACION_MS || 5000;
 
-  // Fecha de hoy en Chile como "AAAA-MM-DD".
-  // En el sandbox (localhost) se puede simular con ?fecha=AAAA-MM-DD
+  // Fecha de hoy en Chile como "AAAA-MM-DD" (según el reloj del dispositivo).
+  // Para probar sin esperar la fecha: agrega ?fecha=AAAA-MM-DD a la dirección.
   function hoyEnChile() {
-    const local = ["localhost", "127.0.0.1"].includes(location.hostname) || /^192\.168\.|^10\./.test(location.hostname);
     const forzada = new URLSearchParams(location.search).get("fecha");
-    if (local && /^\d{4}-\d{2}-\d{2}$/.test(forzada || "")) return forzada;
-    return new Intl.DateTimeFormat("en-CA", { timeZone: ZONA, year: "numeric", month: "2-digit", day: "2-digit" }).format(new Date());
+    if (/^\d{4}-\d{2}-\d{2}$/.test(forzada || "")) return forzada;
+    const dos = (n) => String(n).padStart(2, "0");
+    try {
+      // formatToParts da año, mes y día por separado: no depende del formato de cada celular
+      const p = {};
+      for (const parte of new Intl.DateTimeFormat("en-US", { timeZone: ZONA, year: "numeric", month: "numeric", day: "numeric" }).formatToParts(new Date()))
+        p[parte.type] = parte.value;
+      return `${p.year}-${dos(p.month)}-${dos(p.day)}`;
+    } catch (e) {
+      const d = new Date(); // navegador sin soporte de zonas horarias: usa la fecha local
+      return `${d.getFullYear()}-${dos(d.getMonth() + 1)}-${dos(d.getDate())}`;
+    }
   }
 
   const hoy = hoyEnChile();

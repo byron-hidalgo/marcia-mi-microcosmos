@@ -211,7 +211,16 @@
     .book-host{
       width: var(--bookW);
       margin: 0 auto;
-      filter: drop-shadow(0 28px 60px rgba(0,0,0,.5));
+      position: relative;
+    }
+    /* Sombra fija detrás del libro (no se recalcula en cada cuadro de la animación) */
+    .book-host::before{
+      content: "";
+      position: absolute;
+      inset: 0;
+      border-radius: 6px;
+      box-shadow: 0 28px 60px rgba(0,0,0,.5);
+      pointer-events: none;
     }
     .book{ margin: 0 auto; }
 
@@ -225,6 +234,26 @@
       box-shadow: inset 10px 0 18px -14px rgba(0,0,0,.35); /* lomo del libro */
     }
     .page .pane{ height: 100%; box-sizing: border-box; }
+
+    /* Cada hoja es su propia capa en la tarjeta gráfica: se pinta una vez y durante
+       el giro solo se recorta/mueve (evita el tiriteo al pasar hacia adelante en celular) */
+    .stf__item{
+      will-change: transform;
+      backface-visibility: hidden;
+      -webkit-backface-visibility: hidden;
+    }
+    .stf__outerShadow, .stf__innerShadow{ will-change: transform; }
+
+    /* Páginas vecinas (anterior y siguiente) ya dibujadas y escondidas detrás de la actual,
+       para que el giro empiece sin pausa. Solo aplica mientras la librería las tiene ocultas. */
+    .stf__item.vecina[style="display: none;"]{
+      display: flex !important;
+      position: absolute;
+      left: 0; top: 0;
+      width: 100%; height: 100%;
+      z-index: -1;
+      pointer-events: none;
+    }
 
     /* Firma opcional al final de una página (campo "firma") */
     .firma{
@@ -275,7 +304,10 @@
       transform: scale(1.02);
       transition: transform 650ms var(--ease);
     }
-    .page:hover .hero img{ transform: scale(1.04); }
+    /* Zoom suave de la foto solo con mouse (en pantallas táctiles hacía "latir" la imagen) */
+    @media (hover: hover) and (pointer: fine){
+      .page:hover .hero img{ transform: scale(1.04); }
+    }
 
     .hero::after{
       content:"";
@@ -551,6 +583,7 @@
 
     let libro = null;
     let bloque = null;
+    let paginasEl = [];
     let anchoActual = 0;
     let paginaActual = 0;
     let viajando = false;
@@ -660,7 +693,8 @@
         useMouseEvents: false,    // los gestos los maneja este archivo (ver "Gestos")
         startPage: paginaActual,
       });
-      libro.loadFromHTML(PAGINAS.map(crearPagina));
+      paginasEl = PAGINAS.map(crearPagina);
+      libro.loadFromHTML(paginasEl);
       bloque = el.querySelector(".stf__block");
 
       // La parte que se dobla al pasar la hoja es una copia de la página:
@@ -668,7 +702,10 @@
       new MutationObserver((cambios) => {
         for (const c of cambios)
           for (const n of c.addedNodes)
-            if (n.classList && n.classList.contains("page")) n.classList.add("reverso");
+            if (n.classList && n.classList.contains("page")) {
+              n.classList.add("reverso");
+              n.replaceChildren(); // vacía la copia: el celular no procesa la foto otra vez a mitad del giro
+            }
       }).observe(bloque, { childList: true });
 
       libro.on("flip", (e) => {
@@ -683,9 +720,15 @@
       actualizarUi();
     }
 
+    // Marca las páginas vecinas para que estén dibujadas antes de girar
+    function marcarVecinas() {
+      paginasEl.forEach((el, i) => el.classList.toggle("vecina", Math.abs(i - paginaActual) === 1));
+    }
+
     function actualizarUi() {
       const total = PAGINAS.length;
       const enFinal = paginaActual >= total - 1;
+      marcarVecinas();
       statusText.textContent = `Página ${paginaActual + 1} / ${total}`;
       prevBtn.disabled = paginaActual === 0 || viajando;
       nextBtn.disabled = enFinal || viajando;
@@ -758,19 +801,27 @@
           gesto.dir = "bloqueado"; // no hay hoja hacia ese lado
           return;
         }
-        const w = bloque.offsetWidth, h = bloque.offsetHeight;
-        const inicio = { x: dir === "next" ? w - 4 : 4, y: Math.min(Math.max(gesto.p0.y, 4), h - 4) };
+        // Siempre se toma la hoja desde su esquina superior (como un libro real):
+        // así el doblez es estable aunque el dedo toque en el medio de la página
+        const w = bloque.offsetWidth;
         gesto.dir = dir;
-        gesto.off = { x: inicio.x - gesto.p0.x, y: inicio.y - gesto.p0.y };
-        libro.startUserTouch(inicio);
+        gesto.inicio = { x: dir === "next" ? w - 2 : 2, y: 2 };
+        libro.startUserTouch(gesto.inicio);
       }
       if (gesto.dir === "bloqueado") return;
 
       const p = posEnBloque(e);
-      gesto.ultimo = { x: p.x + gesto.off.x, y: p.y + gesto.off.y };
+      gesto.ultimo = esquina(gesto, p);
       libro.userMove(gesto.ultimo, true);
       e.preventDefault();
     }, { passive: false });
+
+    // Posición de la esquina: sigue al dedo en horizontal; en vertical se mueve
+    // poquito para que el temblor natural del dedo no haga vibrar la hoja
+    function esquina(g, p) {
+      const dy = p.y - g.p0.y;
+      return { x: g.inicio.x + (p.x - g.p0.x), y: Math.max(2, g.inicio.y + dy * 0.25) };
+    }
 
     function soltar(e, cancelado) {
       if (!gesto) return;
@@ -778,13 +829,26 @@
       gesto = null;
       if (g.dir !== "next" && g.dir !== "prev") return;
 
-      // Un movimiento rápido termina de pasar la hoja aunque sea corto
+      // Si se arrastró claramente hacia un lado (o fue un deslizamiento rápido),
+      // la hoja termina de pasar; si fue un toque corto, vuelve a su lugar
       const dx = e.clientX - g.x0;
-      const rapido = !cancelado && Date.now() - g.t0 < 350 && Math.abs(dx) > 30;
-      if (rapido) {
+      const rapido = Date.now() - g.t0 < 350 && Math.abs(dx) > 30;
+      const decidido = Math.abs(dx) > Math.min(60, bloque.offsetWidth * 0.18);
+      if (!cancelado && (rapido || decidido)) {
+        // Lleva la esquina suavemente (no de golpe) más allá de la mitad y suelta
         const w = bloque.offsetWidth;
-        g.ultimo = { x: g.dir === "next" ? -w * 0.5 : w * 1.5, y: g.ultimo.y };
-        libro.userMove(g.ultimo, true);
+        const desde = g.ultimo;
+        const hasta = { x: g.dir === "next" ? -w * 0.4 : w * 1.4, y: desde.y };
+        const t0 = performance.now(), dur = 240;
+        const paso = (t) => {
+          const k = Math.min(1, (t - t0) / dur), e = 1 - Math.pow(1 - k, 2);
+          const pos = { x: desde.x + (hasta.x - desde.x) * e, y: desde.y };
+          libro.userMove(pos, true);
+          if (k < 1) requestAnimationFrame(paso);
+          else libro.userStop(pos);
+        };
+        requestAnimationFrame(paso);
+        return;
       }
       libro.userStop(g.ultimo);
     }
@@ -806,9 +870,12 @@
       resizeTimer = setTimeout(construirLibro, 200);
     });
 
-    // Precarga de fotos
+    // Precarga y pre-procesa todas las fotos, para que estén listas antes de pasar página
     for (const p of PAGINAS) {
-      if (hasImage(p.image)) { const img = new Image(); img.src = p.image; }
+      if (!hasImage(p.image)) continue;
+      const img = new Image();
+      img.src = p.image;
+      if (img.decode) img.decode().catch(() => {});
     }
 
     construirLibro();
