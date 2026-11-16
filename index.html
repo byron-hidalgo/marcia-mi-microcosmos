@@ -839,12 +839,12 @@
       if (e.cancelable) e.preventDefault();
     }, { passive: false });
 
-    // Posición de la esquina según el movimiento del dedo en la pantalla (no depende del scroll).
-    // En vertical se mueve poquito para que el temblor natural del dedo no haga vibrar la hoja
+    // Posición de la esquina según el movimiento HORIZONTAL del dedo en la pantalla.
+    // La altura queda fija: el temblor vertical natural del dedo hacía oscilar el ángulo
+    // del doblez y la sombra (que mide ~2 páginas de alto) bailaba de un lado a otro.
     function esquina(g, e) {
-      const dx = e.clientX - g.x0, dy = e.clientY - g.y0;
-      const y = Math.min(g.alto - 2, Math.max(2, g.inicio.y + dy * 0.25));
-      return { x: g.inicio.x + dx, y };
+      const dx = e.clientX - g.x0;
+      return { x: g.inicio.x + dx, y: g.inicio.y };
     }
 
     function soltar(e, cancelado) {
