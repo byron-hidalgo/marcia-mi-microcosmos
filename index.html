@@ -816,17 +816,28 @@
       }
       if (gesto.dir === "bloqueado") return;
 
-      const p = posEnBloque(e);
-      gesto.ultimo = esquina(gesto, p);
+      gesto.ultimo = esquina(gesto, e);
       libro.userMove(gesto.ultimo, true);
       e.preventDefault();
     }, { passive: false });
 
-    // Posición de la esquina: sigue al dedo en horizontal; en vertical se mueve
-    // poquito para que el temblor natural del dedo no haga vibrar la hoja
-    function esquina(g, p) {
-      const dy = p.y - g.p0.y;
-      return { x: g.inicio.x + (p.x - g.p0.x), y: Math.max(2, g.inicio.y + dy * 0.25) };
+    // Mientras se pasa la hoja con el dedo, la página no debe desplazarse en vertical
+    // (si el dedo se movía un poco hacia arriba/abajo, el texto se movía bajo la hoja y tiritaba)
+    host.addEventListener("touchmove", (e) => {
+      if (!gesto) return;
+      if (gesto.dir === null) {
+        const t = e.touches[0];
+        if (t && Math.abs(t.clientX - gesto.x0) >= Math.abs(t.clientY - gesto.y0)) e.preventDefault();
+        return;
+      }
+      if (e.cancelable) e.preventDefault();
+    }, { passive: false });
+
+    // Posición de la esquina según el movimiento del dedo en la pantalla (no depende del scroll).
+    // En vertical se mueve poquito para que el temblor natural del dedo no haga vibrar la hoja
+    function esquina(g, e) {
+      const dx = e.clientX - g.x0, dy = e.clientY - g.y0;
+      return { x: g.inicio.x + dx, y: Math.max(2, g.inicio.y + dy * 0.25) };
     }
 
     function soltar(e, cancelado) {
@@ -870,11 +881,15 @@
       if (e.key === "ArrowLeft") anterior();
     });
 
+    // Cambios de tamaño: el libro solo depende del ANCHO. En el celular, la barra de direcciones
+    // aparece/desaparece al deslizar y cambia el ALTO; eso no debe recalcular el libro a mitad
+    // del giro. Este listener corre antes que el de la librería y lo frena.
     let resizeTimer = null;
-    window.addEventListener("resize", () => {
+    window.addEventListener("resize", (e) => {
+      e.stopImmediatePropagation();
       clearTimeout(resizeTimer);
-      resizeTimer = setTimeout(construirLibro, 200);
-    });
+      resizeTimer = setTimeout(construirLibro, 200); // reconstruye solo si cambió el ancho
+    }, true);
 
     // Precarga y pre-procesa todas las fotos, para que estén listas antes de pasar página
     for (const p of PAGINAS) {
