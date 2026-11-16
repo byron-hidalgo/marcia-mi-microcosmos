@@ -5,7 +5,7 @@ import path from "node:path";
 import { fileURLToPath } from "node:url";
 
 const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
-const sources = ["index.html", ...fs.readdirSync(path.join(ROOT, "js")).map((f) => "js/" + f)];
+const sources = ["index.html", ...fs.readdirSync(path.join(ROOT, "js")).filter((f) => f.endsWith(".js")).map((f) => "js/" + f)];
 const refRe = /(?:src|href)\s*=\s*["']([^"'#?]+)["']|["']((?:images|js|css)\/[^"'?#]+)["']/g;
 
 let errors = 0, checked = 0;
