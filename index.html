@@ -273,6 +273,16 @@
     }
     .page.reverso > *{ visibility: hidden; }
 
+    /* Sombra liviana del doblez (celular): ver sombraLiviana() */
+    .capa-sombra{ position: absolute; inset: 0; overflow: hidden; pointer-events: none; z-index: 10; }
+    .sombra-doblez{
+      position: absolute; left: 0; top: 0;
+      opacity: 0;
+      will-change: transform, opacity;
+      transform-origin: 0 100px;
+      background: linear-gradient(to right, rgba(0,0,0,.42), rgba(0,0,0,.12) 35%, rgba(0,0,0,0));
+    }
+
     .book-host{ touch-action: pan-y; user-select: none; -webkit-user-select: none; }
 
     /* La hoja y su sombra no pueden salirse del escenario: si se salían por la derecha,
@@ -586,6 +596,9 @@
 
     const FLIP_MS = 1100;       // duración base del paso de página (la librería la acorta según el tamaño)
     const FLIP_VIAJE_MS = 380;  // duración durante "Viajar al final"
+    // Computador (mouse) → sombra real del doblez; celular/tablet → sombreado liviano
+    const SOMBRA_REAL = window.matchMedia("(hover: hover) and (pointer: fine)").matches;
+    document.documentElement.classList.toggle("sombra-liviana", !SOMBRA_REAL);
 
     let libro = null;
     let bloque = null;
@@ -690,7 +703,9 @@
         autoSize: true,
         usePortrait: true,        // una página a la vez
         showCover: false,
-        drawShadow: true,
+        // La sombra real del doblez es muy pesada de redibujar en celular (hacía tiritar la hoja):
+        // solo se usa en computador. En celular se usa una sombra liviana (ver sombraLiviana).
+        drawShadow: SOMBRA_REAL,
         maxShadowOpacity: 0.45,
         flippingTime: FLIP_MS,
         showPageCorners: true,    // la esquina se levanta al pasar el mouse
@@ -702,6 +717,7 @@
       paginasEl = PAGINAS.map(crearPagina);
       libro.loadFromHTML(paginasEl);
       bloque = el.querySelector(".stf__block");
+      if (!SOMBRA_REAL) sombraLiviana(w);
 
       // La parte que se dobla al pasar la hoja es una copia de la página:
       // se marca como "reverso" para que se vea como papel en blanco.
@@ -724,6 +740,45 @@
       });
 
       actualizarUi();
+    }
+
+    // Sombra del doblez para celular. La de la librería cambia de tamaño, color y recorte
+    // en cada cuadro (el celular la repinta entera ~60 veces por segundo y la hoja tiritaba).
+    // Esta se pinta UNA vez y después solo se mueve, gira y se desvanece: eso lo hace
+    // la tarjeta gráfica sin redibujar nada.
+    function sombraLiviana(w) {
+      const capa = document.createElement("div");
+      capa.className = "capa-sombra";
+      const tira = document.createElement("div");
+      tira.className = "sombra-doblez";
+      capa.appendChild(tira);
+      bloque.appendChild(capa);
+
+      const ANCHO = Math.round(w * 0.32);
+      tira.style.width = ANCHO + "px";
+      tira.style.height = bloque.offsetHeight * 2 + "px";
+
+      const render = libro.getRender();
+      const dibujar = render.drawFrame.bind(render);
+      let visible = false;
+      render.drawFrame = function () {
+        dibujar();
+        const calc = libro.flipController.calc;
+        const pos = calc && calc.getShadowStartPoint();
+        if (!pos) {
+          if (visible) { tira.style.opacity = "0"; visible = false; }
+          return;
+        }
+        // Misma posición y ángulo que la sombra original de la librería
+        // La sombra cae sobre la página que queda descubierta, justo a la derecha del doblez
+        // (igual hacia adelante y hacia atrás, porque se ve una sola página a la vez).
+        const e = render.convertToGlobal(pos);
+        const x = render.getDirection() === 1 ? render.getRect().pageWidth + 2 * e.x : e.x; // hacia atrás: posición medida
+        const giro = calc.getShadowAngle() - Math.PI / 2;
+        tira.style.transform = `translate3d(${x}px, ${e.y - 100}px, 0) rotate(${giro}rad)`;
+        tira.style.opacity = String(Math.max(0, (100 - calc.getFlippingProgress()) / 100));
+        visible = true;
+      };
     }
 
     // Marca las páginas vecinas para que estén dibujadas antes de girar
@@ -860,11 +915,14 @@
       const umbral = Math.min(60, bloque.offsetWidth * 0.18) * (g.medio ? 1.4 : 1); // zona media: 1,4× más
       const decidido = Math.abs(dx) > umbral;
       if (!cancelado && (rapido || decidido)) {
-        // Lleva la esquina suavemente (no de golpe) más allá de la mitad y suelta
+        // Nuestro código lleva la hoja casi hasta el final (la librería solo da el último toque).
+        // La duración depende de cuánto le falta: así se ve pasar completa aunque el celular
+        // se salte cuadros (antes la librería terminaba en un instante y parecía un salto).
         const w = bloque.offsetWidth;
         const desde = g.ultimo;
-        const hasta = { x: g.dir === "next" ? -w * 0.4 : w * 1.4, y: desde.y };
-        const t0 = performance.now(), dur = 240;
+        const hasta = { x: g.dir === "next" ? -w * 0.97 : w * 0.97, y: desde.y };
+        const falta = Math.abs(hasta.x - desde.x) / (2 * w); // 0 = ya llegó, 1 = recorrido completo
+        const t0 = performance.now(), dur = 260 + 420 * falta;
         const paso = (t) => {
           const k = Math.min(1, (t - t0) / dur), e = 1 - Math.pow(1 - k, 2);
           const pos = { x: desde.x + (hasta.x - desde.x) * e, y: desde.y };
